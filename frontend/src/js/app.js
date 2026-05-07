@@ -9,16 +9,14 @@ let tipoModuloActual = '';
 async function cargarComponentes() {
   try {
     const base = window.location.pathname.includes('/pages/') ? '../' : 'src/';
-<<<<<<< HEAD
-    const headerRes = await fetch(`${base}components/header.html`);
-=======
+    
     const isClientPage = window.location.pathname.includes('reservas.html') || window.location.pathname.includes('nueva-reserva.html');
-    const isPublicPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html');
+    const isPublicPage = window.location.pathname.includes('login.html') || window.location.pathname.includes('register.html') || window.location.pathname.includes('forgot-password') || window.location.pathname.includes('reset-password');
     let headerFile = 'header.html';
     if (isClientPage) headerFile = 'client-header.html';
     else if (isPublicPage) headerFile = 'public-header.html';
+    
     const headerRes = await fetch(`${base}components/${headerFile}`);
->>>>>>> Diego
     const headerHTML = await headerRes.text();
     document.getElementById('header-container').innerHTML = headerHTML;
 
@@ -98,7 +96,6 @@ function marcarNavActivo() {
 
 // ===== PAGINACIÓN =====
 function renderizarPagina() {
-<<<<<<< HEAD
   const containerId = tipoModuloActual === 'clientes'
     ? 'lista'
     : tipoModuloActual === 'cabanas'
@@ -110,12 +107,6 @@ function renderizarPagina() {
   const totalPaginas = Math.max(Math.ceil(datosFiltrados.length / itemsPorPagina), 1);
   if (paginaActual > totalPaginas) paginaActual = totalPaginas;
 
-=======
-  const containerId = `${tipoModuloActual}-container`;
-  const container = document.getElementById(containerId);
-  if (!container) return;
-
->>>>>>> Diego
   const inicio = (paginaActual - 1) * itemsPorPagina;
   const fin = inicio + itemsPorPagina;
   const itemsAMostrar = datosFiltrados.slice(inicio, fin);
@@ -126,7 +117,6 @@ function renderizarPagina() {
     return;
   }
 
-<<<<<<< HEAD
   if (tipoModuloActual === 'clientes') {
     container.innerHTML = renderTablaClientes(itemsAMostrar);
   } else if (tipoModuloActual === 'cabanas') {
@@ -146,10 +136,6 @@ function renderizarPagina() {
   if (window.lucide) {
     lucide.createIcons({ parent: container });
   }
-}
-
-function escapeJSString(value) {
-  return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\"/g, '&quot;');
 }
 
 function templateFilaCliente(cliente) {
@@ -298,23 +284,6 @@ function renderPaginacion(totalItems) {
   navPaginacion.innerHTML = '';
 
   if (totalItems === 0) return;
-=======
-  container.innerHTML = itemsAMostrar.map(item => {
-    if (tipoModuloActual === 'habitaciones') return templateHabitacion(item);
-    if (tipoModuloActual === 'paquetes')     return templatePaquete(item);
-    if (tipoModuloActual === 'servicios')    return templateServicio(item);
-  }).join('');
-
-  renderPaginacion(datosFiltrados.length);
-}
-
-function renderPaginacion(totalItems) {
-  const navPaginacion = document.getElementById('paginacion');
-  if (!navPaginacion) return;
-
-  const totalPaginas = Math.ceil(totalItems / itemsPorPagina);
-  navPaginacion.innerHTML = '';
->>>>>>> Diego
 
   for (let i = 1; i <= totalPaginas; i++) {
     const boton = document.createElement('button');
@@ -327,6 +296,10 @@ function renderPaginacion(totalItems) {
     };
     navPaginacion.appendChild(boton);
   }
+}
+
+function escapeJSString(value) {
+  return String(value || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
 // ===== TEMPLATES PÁGINAS INTERNAS (con botones editar/borrar) =====
@@ -393,7 +366,7 @@ function templateServicio(ser) {
     </div>`;
 }
 
-<<<<<<< HEAD
+
 function obtenerTextoEstadoCliente(estado) {
   return estado === 1 || estado === '1' || estado === true
     ? 'Activo'
@@ -511,8 +484,7 @@ window.mostrarDetalleCabana = (cabana) => {
   overlay.classList.add('activo');
 };
 
-=======
->>>>>>> Diego
+
 // ===== TEMPLATES INICIO (solo vista, sin botones admin) =====
 function templateHabitacionInicio(hab) {
   const itemJson = JSON.stringify(hab).replace(/"/g, '&quot;');
@@ -611,51 +583,16 @@ window.mostrarDetalles = (item, tipo) => {
   const modal = document.getElementById('detalle-modal-overlay');
   if (!modal) return;
 
-<<<<<<< HEAD
-  const nombreElemento = document.getElementById('detalle-nombre');
-  const descripcionElemento = document.getElementById('detalle-descripcion');
-  const precioElemento = document.getElementById('detalle-precio');   // puede ser null en clientes.html
-  const estadoElemento = document.getElementById('detalle-estado');
-
-  if (tipo === 'Cliente') {
-    nombreElemento.textContent = `${item.Nombre || ''} ${item.Apellido || ''}`.trim() || 'Sin nombre';
-    descripcionElemento.innerHTML = `ID: ${item.IDCliente || item.id || 'No informado'}<br>
-      Documento: ${item.NroDocumento || item.Documento || 'No informado'}<br>
-      Nombre: ${item.Nombre || 'No informado'}<br>
-      Apellido: ${item.Apellido || 'No informado'}<br>
-      Dirección: ${item.Direccion || 'No informada'}<br>
-      Correo: ${item.Correo || item.Email || 'No informado'}<br>
-      Teléfono: ${item.Telefono || 'No informado'}<br>
-      Rol: ${item.IDRol || item.Rol || 'No informado'}`;
-    if (precioElemento) precioElemento.textContent = '';
-    if (estadoElemento) {
-      estadoElemento.textContent = `Estado: ${obtenerTextoEstadoCliente(item.Estado ?? 1)}`;
-      estadoElemento.style.display = 'block';
-    }
-  } else {
-    nombreElemento.textContent = item.nombre || item.NombreHabitacion || item.tipo || 'Sin nombre';
-    descripcionElemento.textContent = item.descripcion || item.Descripcion || 'Sin descripción disponible.';
-    if (precioElemento) precioElemento.textContent = `$${Number(item.precio || item.Precio || 0).toLocaleString('es-CO')}`;
-    if (estadoElemento) estadoElemento.style.display = 'none';
-  }
-
-  document.getElementById('detalle-categoria').textContent = tipo;
-
-  // ✅ CORRECCIÓN: guarda null — detalle-img no existe en clientes.html
-  const imgElement = document.getElementById('detalle-img');
-  if (imgElement) {
-    imgElement.src = item.imagen || item.ImagenCabana ||
-      'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000';
-  }
-=======
   document.getElementById('detalle-nombre').textContent = item.nombre || item.NombreHabitacion || item.tipo || 'Sin nombre';
   document.getElementById('detalle-descripcion').textContent = item.descripcion || item.Descripcion || 'Sin descripción disponible.';
   document.getElementById('detalle-precio').textContent = `$${Number(item.precio || item.Precio || 0).toLocaleString('es-CO')}`;
   document.getElementById('detalle-categoria').textContent = tipo;
 
   const imgElement = document.getElementById('detalle-img');
-  imgElement.src = item.imagen || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000';
->>>>>>> Diego
+  if (imgElement) {
+    imgElement.src = item.imagen || item.ImagenCabana ||
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000';
+  }
 
   const extraDiv = document.getElementById('detalle-extra');
   if (extraDiv) {
@@ -813,7 +750,6 @@ async function iniciarPagina() {
     tipoModuloActual = 'servicios';
     configurarEventosServicios();
     await cargarDatos(serviciosAPI);
-<<<<<<< HEAD
   } else if (path.includes('clientes')) {
     tipoModuloActual = 'clientes';
     configurarEventosClientes();
@@ -822,8 +758,6 @@ async function iniciarPagina() {
     tipoModuloActual = 'cabanas';
     configurarEventosCabanas();
     await cargarDatos(cabanasAPI);
-=======
->>>>>>> Diego
   } else {
     // ✅ PÁGINA DE INICIO
     await iniciarInicio();
@@ -1074,7 +1008,7 @@ window.eliminarServicio = async (id) => {
   }
 };
 
-<<<<<<< HEAD
+
 // ===== CLIENTES =====
 function configurarEventosClientes() {
   const camposCli = [
@@ -1282,8 +1216,6 @@ if (btnCerrarVerCabana) btnCerrarVerCabana.addEventListener('click', () => {
   if (overlay) overlay.classList.remove('activo');
 });
 
-=======
->>>>>>> Diego
 const btnCancel = document.getElementById('btn-cancelar');
 if (btnCancel) btnCancel.addEventListener('click', cerrarModal);
 
@@ -1291,4 +1223,4 @@ if (btnCancel) btnCancel.addEventListener('click', cerrarModal);
 document.addEventListener('DOMContentLoaded', async () => {
   await cargarComponentes();
   await iniciarPagina();
-});
+});

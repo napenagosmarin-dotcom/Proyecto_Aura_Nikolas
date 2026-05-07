@@ -1,10 +1,5 @@
 const mysql = require('mysql2/promise');
 
-<<<<<<< HEAD
-const db = require('../config/db.js');
-
-module.exports = db;
-=======
 const connection = mysql.createPool({
     host: 'localhost',
     user: 'root',
@@ -16,4 +11,3 @@ const connection = mysql.createPool({
 });
 
 module.exports = connection;
->>>>>>> Diego

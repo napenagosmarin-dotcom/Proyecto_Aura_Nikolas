@@ -133,7 +133,6 @@ async function cargarServicios() {
             <div class="servicio-tooltip">
                 <p class="servicio-desc">${s.Descripcion || 'Servicio premium para mejorar tu experiencia.'}</p>
                 <div class="servicio-meta">
-                    ${s.Duracion ? `<span>Duración: ${s.Duracion}</span>` : ''}
                     ${s.MaxPersonas ? `<span>Máx. personas: ${s.MaxPersonas}</span>` : ''}
                 </div>
             </div>

@@ -62,7 +62,7 @@ const getReservationsByUser = async (userId) => {
   try {
     const parsedUserId = Number(userId);
     if (!Number.isInteger(parsedUserId)) return [];
-
+ 
     const sql = `SELECT r.*, u.NombreUsuario, e.NombreEstadoReserva, m.NomMetodoPago,
                         p.IDPaquete, p.NombrePaquete, p.Precio AS PrecioPaquete,
                         h.IDHabitacion AS IDHabitacion,

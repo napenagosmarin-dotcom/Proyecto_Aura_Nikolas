@@ -1,77 +1,148 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="../css/reserva.css">
-    <link rel="stylesheet" href="../css/admin.css">
-    <title>Panel Administrador - Aura Travel</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Administrador - Aura Travel</title>
+  <link rel="stylesheet" href="../css/reset.css" />
+  <link rel="stylesheet" href="../css/variables.css" />
+  <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/admin.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-    <div class="admin-layout">
-        <aside class="sidebar">
-            <div class="sidebar-logo">
-                <h2>Aura Travel</h2>
-                <p>Panel Administrador</p>
-            </div>
-            <nav class="sidebar-nav">
-                <button class="nav-item active" data-section="reservas">Reservas</button>
-                <button class="nav-item" data-section="habitaciones">Habitaciones</button>
-                <button class="nav-item" data-section="usuarios">Usuarios</button>
-                <button class="nav-item" data-section="clientes">Clientes</button>
-                <button class="nav-item" data-section="paquetes">Paquetes</button>
-                <button class="nav-item" data-section="servicios">Servicios</button>
-            </nav>
-            <button id="logoutBtn" class="btn-logout">Cerrar Sesión</button>
-        </aside>
 
-        <main class="admin-main">
-            <header class="admin-header">
-                <div class="header-title">
-                    <p class="eyebrow">Sistema de Reservas</p>
-                    <h1 id="sectionTitle">Gestión de Reservas</h1>
-                    <p class="admin-welcome" id="adminName"></p>
-                </div>
-                <div class="header-actions">
-                    <div class="search-group">
-                        <span class="search-icon">🔍</span>
-                        <input id="searchInput" type="search" placeholder="Buscar reservas, clientes..." />
-                    </div>
-                    <button id="newItemBtn" class="btn btn-primary">+ Nueva habitación</button>
-                </div>
-            </header>
+  <div class="admin-layout">
 
-            <!-- RESERVAS -->
-            <section id="section-reservas" class="admin-section active">
-                <div id="reservasList"></div>
-            </section>
+    <!-- SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar__logo">
+        <div class="admin-sidebar__logo-icon">
+          <svg viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg" class="admin-sidebar__logo-svg">
+            <defs>
+              <linearGradient id="ngcv" x1="0%" y1="100%" x2="0%" y2="0%">
+                <stop offset="0%" stop-color="#7b2ff7"/>
+                <stop offset="100%" stop-color="#00d4ff"/>
+              </linearGradient>
+              <linearGradient id="ngc" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00d4ff"/>
+                <stop offset="100%" stop-color="#7b2ff7"/>
+              </linearGradient>
+              <linearGradient id="ngring" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.9"/>
+                <stop offset="50%" stop-color="#9b59f5" stop-opacity="0.5"/>
+                <stop offset="100%" stop-color="#7b2ff7" stop-opacity="0.8"/>
+              </linearGradient>
+              <linearGradient id="ngshine" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stop-color="#ffffff" stop-opacity="0.15"/>
+                <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <circle cx="19" cy="19" r="19" fill="#0d0b2e"/>
+            <circle cx="19" cy="19" r="18.5" fill="none" stroke="url(#ngring)" stroke-width="0.8"/>
+            <circle cx="19" cy="19" r="15.5" fill="none" stroke="url(#ngc)" stroke-width="0.3" opacity="0.3"/>
+            <ellipse cx="19" cy="11" rx="8" ry="4" fill="url(#ngshine)"/>
+            <polygon points="5,31 9.5,31 19,6 16.5,6" fill="url(#ngcv)"/>
+            <polygon points="21.5,6 19,6 28.5,31 33,31" fill="url(#ngcv)"/>
+            <rect x="9.5" y="19.5" width="19" height="4" rx="1" fill="url(#ngc)"/>
+            <polygon points="14,19.5 24,19.5 19,14.5" fill="#0d0b2e"/>
+            <line x1="5.5" y1="31" x2="18.5" y2="7.5" stroke="#e040fb" stroke-width="0.7" opacity="0.55"/>
+            <line x1="32.5" y1="31" x2="19.5" y2="7.5" stroke="#e040fb" stroke-width="0.7" opacity="0.55"/>
+            <circle cx="19" cy="6" r="1.4" fill="#e040fb"/>
+          </svg>
+        </div>
+        <div>
+          <span class="admin-sidebar__logo-nombre">Aura Travel</span>
+          <span class="admin-sidebar__logo-rol">Panel Admin</span>
+        </div>
+      </div>
 
-            <!-- HABITACIONES -->
-            <section id="section-habitaciones" class="admin-section">
-                <div class="cards-grid" id="habitacionesGrid"></div>
-            </section>
+      <nav class="admin-sidebar__nav">
+        <button class="admin-nav-item active" data-section="reservas">
+          <i data-lucide="calendar-check"></i>
+          <span>Reservas</span>
+        </button>
+        <button class="admin-nav-item" data-section="habitaciones">
+          <i data-lucide="bed"></i>
+          <span>Habitaciones</span>
+        </button>
+        <button class="admin-nav-item" data-section="usuarios">
+          <i data-lucide="users"></i>
+          <span>Usuarios</span>
+        </button>
+        <button class="admin-nav-item" data-section="clientes">
+          <i data-lucide="user-check"></i>
+          <span>Clientes</span>
+        </button>
+        <button class="admin-nav-item" data-section="paquetes">
+          <i data-lucide="package"></i>
+          <span>Paquetes</span>
+        </button>
+        <button class="admin-nav-item" data-section="servicios">
+          <i data-lucide="star"></i>
+          <span>Servicios</span>
+        </button>
+      </nav>
 
-            <!-- USUARIOS -->
-            <section id="section-usuarios" class="admin-section">
-                <div id="usuariosList"></div>
-            </section>
+      <div class="admin-sidebar__footer">
+        <p class="admin-sidebar__welcome" id="adminName"></p>
+        <button id="logoutBtn" class="admin-sidebar__logout">
+          <i data-lucide="log-out"></i>
+          <span>Cerrar Sesión</span>
+        </button>
+      </div>
+    </aside>
 
-            <!-- CLIENTES -->
-            <section id="section-clientes" class="admin-section">
-                <div id="clientesList"></div>
-            </section>
+    <!-- MAIN -->
+    <main class="admin-main">
 
-            <!-- PAQUETES -->
-            <section id="section-paquetes" class="admin-section">
-                <div id="paquetesList"></div>
-            </section>
+      <!-- HEADER -->
+      <header class="admin-header">
+        <div class="admin-header__title">
+          <p class="admin-header__eyebrow">Sistema de Gestión</p>
+          <h1 id="sectionTitle">Gestión de Reservas</h1>
+        </div>
+        <div class="admin-header__actions">
+          <div class="admin-search">
+            <i data-lucide="search" class="admin-search__icon"></i>
+            <input id="searchInput" type="search" placeholder="Buscar...">
+          </div>
+          <button id="newItemBtn" class="btn btn-primario" style="display:none;">
+            <i data-lucide="plus" class="btn-icon"></i>
+            Nueva habitación
+          </button>
+        </div>
+      </header>
 
-            <!-- SERVICIOS -->
-            <section id="section-servicios" class="admin-section">
-                <div id="serviciosList"></div>
-            </section>
-        </main>
-    </div>
-    <script src="../js/admin.js"></script>
+      <!-- SECCIONES -->
+      <section id="section-reservas" class="admin-section active">
+        <div id="reservasList"></div>
+      </section>
+
+      <section id="section-habitaciones" class="admin-section">
+        <div class="cards-grid" id="habitacionesGrid"></div>
+      </section>
+
+      <section id="section-usuarios" class="admin-section">
+        <div id="usuariosList"></div>
+      </section>
+
+      <section id="section-clientes" class="admin-section">
+        <div id="clientesList"></div>
+      </section>
+
+      <section id="section-paquetes" class="admin-section">
+        <div id="paquetesList"></div>
+      </section>
+
+      <section id="section-servicios" class="admin-section">
+        <div id="serviciosList"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="../js/admin.js"></script>
+  <script>lucide.createIcons();</script>
 </body>
 </html>

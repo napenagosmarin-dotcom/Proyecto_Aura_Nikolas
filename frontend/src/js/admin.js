@@ -21,16 +21,16 @@ if (logoutBtn) {
     });
 }
 
-// Navegación
-const navItems = document.querySelectorAll('.nav-item');
+// Navegación — ahora usa .admin-nav-item
+const navItems = document.querySelectorAll('.admin-nav-item');
 const sections = document.querySelectorAll('.admin-section');
 const titles = {
-    reservas: 'Gestión de Reservas',
+    reservas:     'Gestión de Reservas',
     habitaciones: 'Gestión de Habitaciones',
-    usuarios: 'Gestión de Usuarios',
-    clientes: 'Gestión de Clientes',
-    paquetes: 'Gestión de Paquetes',
-    servicios: 'Gestión de Servicios'
+    usuarios:     'Gestión de Usuarios',
+    clientes:     'Gestión de Clientes',
+    paquetes:     'Gestión de Paquetes',
+    servicios:    'Gestión de Servicios'
 };
 
 navItems.forEach(item => {
@@ -48,12 +48,12 @@ navItems.forEach(item => {
 
 function cargarSeccion(section) {
     switch(section) {
-        case 'reservas': cargarReservas(); break;
+        case 'reservas':     cargarReservas();     break;
         case 'habitaciones': cargarHabitaciones(); break;
-        case 'usuarios': cargarUsuarios(); break;
-        case 'clientes': cargarClientes(); break;
-        case 'paquetes': cargarPaquetes(); break;
-        case 'servicios': cargarServicios(); break;
+        case 'usuarios':     cargarUsuarios();     break;
+        case 'clientes':     cargarClientes();     break;
+        case 'paquetes':     cargarPaquetes();     break;
+        case 'servicios':    cargarServicios();    break;
     }
 }
 
@@ -67,59 +67,69 @@ function updateHeader(section) {
     }
 }
 
-// RESERVAS
+// ===== RESERVAS =====
 async function cargarReservas() {
-    const response = await fetch('/api/reservations');
-    const reservas = await response.json();
-    const estadosRes = await fetch('/api/estadosreserva');
-    const estados = await estadosRes.json();
-
     const list = document.getElementById('reservasList');
-    if (reservas.length === 0) {
-        list.innerHTML = '<p style="color:var(--gris)">No hay reservas registradas.</p>';
-        return;
-    }
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.4); padding:2rem;">Cargando reservas...</p>';
 
-    list.innerHTML = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Cliente</th>
-                    <th>Documento</th>
-                    <th>Fecha Inicio</th>
-                    <th>Fecha Fin</th>
-                    <th>Total</th>
-                    <th>Pago</th>
-                    <th>Estado</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${reservas.map(r => `
-                    <tr>
-                        <td>#${r.IdReserva}</td>
-                        <td>${r.NombreUsuario}</td>
-                        <td>${r.NroDocumentoCliente}</td>
-                        <td>${r.FechaInicio ? new Date(r.FechaInicio).toLocaleDateString() : '-'}</td>
-                        <td>${r.FechaFinalizacion ? new Date(r.FechaFinalizacion).toLocaleDateString() : '-'}</td>
-                        <td>$${r.MontoTotal?.toLocaleString()}</td>
-                        <td>${r.NomMetodoPago}</td>
-                        <td><span class="badge badge-${r.NombreEstadoReserva?.toLowerCase()}">${r.NombreEstadoReserva}</span></td>
-                        <td>
-                            <select class="estado-select" onchange="cambiarEstado(${r.IdReserva}, this.value)">
-                                ${estados.map(e => `
-                                    <option value="${e.IdEstadoReserva}" ${e.IdEstadoReserva === r.IdEstadoReserva ? 'selected' : ''}>
-                                        ${e.NombreEstadoReserva}
-                                    </option>
-                                `).join('')}
-                            </select>
-                        </td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    try {
+        const [resReservas, resEstados] = await Promise.all([
+            fetch('/api/reservations'),
+            fetch('/api/estadosreserva')
+        ]);
+        const reservas = await resReservas.json();
+        const estados  = await resEstados.json();
+
+        if (!reservas.length) {
+            list.innerHTML = '<p style="color:rgba(255,255,255,0.4); padding:2rem;">No hay reservas registradas.</p>';
+            return;
+        }
+
+        list.innerHTML = `
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Cliente</th>
+                            <th>Documento</th>
+                            <th>Fecha Inicio</th>
+                            <th>Fecha Fin</th>
+                            <th>Total</th>
+                            <th>Pago</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${reservas.map(r => `
+                            <tr>
+                                <td><span style="color:var(--color-acento);font-weight:600;">#${r.IdReserva}</span></td>
+                                <td style="color:#fff;font-weight:500;">${r.NombreUsuario}</td>
+                                <td>${r.NroDocumentoCliente}</td>
+                                <td>${r.FechaInicio ? new Date(r.FechaInicio).toLocaleDateString('es-CO') : '-'}</td>
+                                <td>${r.FechaFinalizacion ? new Date(r.FechaFinalizacion).toLocaleDateString('es-CO') : '-'}</td>
+                                <td style="color:#fff;font-weight:600;">$${r.MontoTotal?.toLocaleString('es-CO') ?? '0'}</td>
+                                <td>${r.NomMetodoPago ?? '-'}</td>
+                                <td><span class="badge badge-${r.NombreEstadoReserva?.toLowerCase()}">${r.NombreEstadoReserva}</span></td>
+                                <td>
+                                    <select class="estado-select" onchange="cambiarEstado(${r.IdReserva}, this.value)">
+                                        ${estados.map(e => `
+                                            <option value="${e.IdEstadoReserva}" ${e.IdEstadoReserva === r.IdEstadoReserva ? 'selected' : ''}>
+                                                ${e.NombreEstadoReserva}
+                                            </option>
+                                        `).join('')}
+                                    </select>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (error) {
+        list.innerHTML = '<p style="color:#ef4444; padding:2rem;">Error al cargar reservas.</p>';
+        console.error('Error cargando reservas:', error);
+    }
 }
 
 async function cambiarEstado(idReserva, idEstado) {
@@ -136,178 +146,225 @@ async function cambiarEstado(idReserva, idEstado) {
     }
 }
 
-// HABITACIONES
+// ===== HABITACIONES =====
 async function cargarHabitaciones() {
-    const response = await fetch('/api/habitaciones');
-    const habitaciones = await response.json();
     const container = document.getElementById('habitacionesGrid');
-
     if (!container) return;
-    if (habitaciones.length === 0) {
-        container.innerHTML = '<p style="color:var(--gris)">No hay habitaciones registradas.</p>';
-        return;
+    container.innerHTML = '<p style="color:rgba(255,255,255,0.4);">Cargando habitaciones...</p>';
+
+    try {
+        const response = await fetch('/api/habitaciones');
+        const habitaciones = await response.json();
+
+        if (!habitaciones.length) {
+            container.innerHTML = '<p style="color:rgba(255,255,255,0.4);">No hay habitaciones registradas.</p>';
+            return;
+        }
+
+        container.innerHTML = habitaciones.map(h => {
+            const estado      = h.Estado === 1 ? 'Disponible' : 'Mantenimiento';
+            const estadoClass = h.Estado === 1 ? 'status-disponible' : 'status-mantenimiento';
+            const precio      = h.Precio ? `$${Number(h.Precio).toLocaleString('es-CO')}` : '$0';
+            return `
+                <article class="room-card">
+                    <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80"
+                         alt="${h.NombreHabitacion || 'Habitación'}" />
+                    <div class="room-card-body">
+                        <div>
+                            <h3>${h.NombreHabitacion || 'Habitación'}</h3>
+                            <p>${h.Descripcion || 'Descripción breve de la habitación.'}</p>
+                        </div>
+                        <div class="room-info">
+                            <span class="room-price">${precio}</span>
+                            <span class="badge-status ${estadoClass}">${estado}</span>
+                        </div>
+                    </div>
+                </article>`;
+        }).join('');
+    } catch (error) {
+        container.innerHTML = '<p style="color:#ef4444;">Error al cargar habitaciones.</p>';
+        console.error('Error cargando habitaciones:', error);
     }
-
-    container.innerHTML = habitaciones.map(h => {
-        const estado = h.Estado === 1 ? 'Disponible' : 'Mantenimiento';
-        const estadoClass = h.Estado === 1 ? 'status-disponible' : 'status-mantenimiento';
-        const precio = h.Precio ? `$${Number(h.Precio).toLocaleString()}` : '$0';
-        return `
-            <article class="room-card">
-                <img src="https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=900&q=80" alt="${h.NombreHabitacion || 'Habitación'}" />
-                <div class="room-card-body">
-                    <div>
-                        <h3>${h.NombreHabitacion || 'Habitación'}</h3>
-                        <p>${h.Descripcion || 'Descripción breve de la habitación.'}</p>
-                    </div>
-                    <div class="room-info">
-                        <span class="room-price">${precio}</span>
-                        <span class="badge-status ${estadoClass}">${estado}</span>
-                    </div>
-                </div>
-            </article>
-        `;
-    }).join('');
 }
 
-// USUARIOS
+// ===== USUARIOS =====
 async function cargarUsuarios() {
-    const response = await fetch('/api/usuarios');
-    const usuarios = await response.json();
     const list = document.getElementById('usuariosList');
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.4); padding:2rem;">Cargando usuarios...</p>';
 
-    list.innerHTML = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>País</th>
-                    <th>Rol</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${usuarios.map(u => `
-                    <tr>
-                        <td>${u.IDUsuario}</td>
-                        <td>${u.NombreUsuario}</td>
-                        <td>${u.Apellido || '-'}</td>
-                        <td>${u.Email}</td>
-                        <td>${u.Telefono || '-'}</td>
-                        <td>${u.Pais || '-'}</td>
-                        <td>${u.IDRol === 2 ? 'Admin' : 'Cliente'}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    try {
+        const response = await fetch('/api/usuarios');
+        const usuarios = await response.json();
+
+        list.innerHTML = `
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>País</th>
+                            <th>Rol</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${usuarios.map(u => `
+                            <tr>
+                                <td><span style="color:var(--color-acento);font-weight:600;">${u.IDUsuario}</span></td>
+                                <td style="color:#fff;font-weight:500;">${u.NombreUsuario}</td>
+                                <td>${u.Apellido || '-'}</td>
+                                <td>${u.Email}</td>
+                                <td>${u.Telefono || '-'}</td>
+                                <td>${u.Pais || '-'}</td>
+                                <td>
+                                    <span class="badge ${u.IDRol === 2 ? 'badge-completada' : 'badge-confirmada'}">
+                                        ${u.IDRol === 2 ? 'Admin' : 'Cliente'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (error) {
+        list.innerHTML = '<p style="color:#ef4444; padding:2rem;">Error al cargar usuarios.</p>';
+        console.error('Error cargando usuarios:', error);
+    }
 }
 
-// CLIENTES
+// ===== CLIENTES =====
 async function cargarClientes() {
-    const response = await fetch('/api/clientes');
-    const clientes = await response.json();
     const list = document.getElementById('clientesList');
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.4); padding:2rem;">Cargando clientes...</p>';
 
-    list.innerHTML = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>Documento</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Email</th>
-                    <th>Teléfono</th>
-                    <th>Dirección</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${clientes.map(c => `
-                    <tr>
-                        <td>${c.NroDocumento}</td>
-                        <td>${c.Nombre}</td>
-                        <td>${c.Apellido || '-'}</td>
-                        <td>${c.Email}</td>
-                        <td>${c.Telefono || '-'}</td>
-                        <td>${c.Direccion || '-'}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    try {
+        const response = await fetch('/api/clientes');
+        const clientes = await response.json();
+
+        list.innerHTML = `
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Documento</th>
+                            <th>Nombre</th>
+                            <th>Apellido</th>
+                            <th>Email</th>
+                            <th>Teléfono</th>
+                            <th>Dirección</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${clientes.map(c => `
+                            <tr>
+                                <td><span style="color:var(--color-acento);font-weight:600;">${c.NroDocumento}</span></td>
+                                <td style="color:#fff;font-weight:500;">${c.Nombre}</td>
+                                <td>${c.Apellido || '-'}</td>
+                                <td>${c.Email}</td>
+                                <td>${c.Telefono || '-'}</td>
+                                <td>${c.Direccion || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (error) {
+        list.innerHTML = '<p style="color:#ef4444; padding:2rem;">Error al cargar clientes.</p>';
+        console.error('Error cargando clientes:', error);
+    }
 }
 
-// PAQUETES
+// ===== PAQUETES =====
 async function cargarPaquetes() {
-    const response = await fetch('/api/paquetes');
-    const paquetes = await response.json();
     const list = document.getElementById('paquetesList');
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.4); padding:2rem;">Cargando paquetes...</p>';
 
-    list.innerHTML = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Nombre</th>
-                    <th>Habitación</th>
-                    <th>Servicio</th>
-                    <th>Precio</th>
-                    <th>Estado</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${paquetes.map(p => `
-                    <tr>
-                        <td>${p.IDPaquete}</td>
-                        <td>${p.NombrePaquete}</td>
-                        <td>${p.NombreHabitacion}</td>
-                        <td>${p.NombreServicio}</td>
-                        <td>$${p.Precio?.toLocaleString()}</td>
-                        <td><span class="badge badge-confirmada">${p.Estado === 1 ? 'Activo' : 'Inactivo'}</span></td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    try {
+        const response = await fetch('/api/paquetes');
+        const paquetes = await response.json();
+
+        list.innerHTML = `
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Habitación</th>
+                            <th>Servicio</th>
+                            <th>Precio</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${paquetes.map(p => `
+                            <tr>
+                                <td><span style="color:var(--color-acento);font-weight:600;">${p.IDPaquete}</span></td>
+                                <td style="color:#fff;font-weight:500;">${p.NombrePaquete}</td>
+                                <td>${p.NombreHabitacion}</td>
+                                <td>${p.NombreServicio}</td>
+                                <td style="color:#fff;font-weight:600;">$${p.Precio?.toLocaleString('es-CO') ?? '0'}</td>
+                                <td>
+                                    <span class="badge ${p.Estado === 1 ? 'badge-confirmada' : 'badge-cancelada'}">
+                                        ${p.Estado === 1 ? 'Activo' : 'Inactivo'}
+                                    </span>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (error) {
+        list.innerHTML = '<p style="color:#ef4444; padding:2rem;">Error al cargar paquetes.</p>';
+        console.error('Error cargando paquetes:', error);
+    }
 }
 
-// SERVICIOS
+// ===== SERVICIOS =====
 async function cargarServicios() {
-    const response = await fetch('/api/servicios');
-    const servicios = await response.json();
     const list = document.getElementById('serviciosList');
+    list.innerHTML = '<p style="color:rgba(255,255,255,0.4); padding:2rem;">Cargando servicios...</p>';
 
-    list.innerHTML = `
-        <table class="admin-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Nombre</th>
-                    <th>Descripción</th>
-                    <th>Duración</th>
-                    <th>Max Personas</th>
-                    <th>Costo</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${servicios.map(s => `
-                    <tr>
-                        <td>${s.IDServicio}</td>
-                        <td>${s.NombreServicio}</td>
-                        <td>${s.Descripcion}</td>
-                        <td>${s.Duracion}</td>
-                        <td>${s.CantidadMaximaPersonas}</td>
-                        <td>$${s.Costo?.toLocaleString()}</td>
-                    </tr>
-                `).join('')}
-            </tbody>
-        </table>
-    `;
+    try {
+        const response = await fetch('/api/servicios');
+        const servicios = await response.json();
+
+        list.innerHTML = `
+            <div class="admin-table-wrapper">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Nombre</th>
+                            <th>Descripción</th>
+                            <th>Duración</th>
+                            <th>Máx. Personas</th>
+                            <th>Costo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${servicios.map(s => `
+                            <tr>
+                                <td><span style="color:var(--color-acento);font-weight:600;">${s.IDServicio}</span></td>
+                                <td style="color:#fff;font-weight:500;">${s.NombreServicio}</td>
+                                <td>${s.Descripcion}</td>
+                                <td>${s.Duracion}</td>
+                                <td>${s.CantidadMaximaPersonas}</td>
+                                <td style="color:#fff;font-weight:600;">$${s.Costo?.toLocaleString('es-CO') ?? '0'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>`;
+    } catch (error) {
+        list.innerHTML = '<p style="color:#ef4444; padding:2rem;">Error al cargar servicios.</p>';
+        console.error('Error cargando servicios:', error);
+    }
 }
 
-// Cargar sección inicial
+// ===== INICIALIZAR =====
 updateHeader('reservas');
 cargarReservas();

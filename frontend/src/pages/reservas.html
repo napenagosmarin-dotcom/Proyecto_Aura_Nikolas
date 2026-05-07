@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../css/reset.css" />
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/styles.css" />
+  <link rel="stylesheet" href="../css/nueva-reserva.css" />
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     if (!localStorage.getItem('user')) {
@@ -14,7 +15,7 @@
     }
   </script>
 </head>
-<body class="page-formularios">
+<body class="page-formularios main-content--premium">
 
   <div id="header-container"></div>
 
@@ -25,9 +26,11 @@
   <main class="main-content" id="mainContent">
 
     <section class="seccion">
-      <div class="container">
-        <h2 class="seccion__titulo">Mis Reservas</h2>
-        <p class="seccion__subtitulo">Gestiona tus reservas de manera fácil y rápida</p>
+      <div class="container" style="max-width: 1300px !important;">
+        <div style="text-align: left; margin-bottom: 2rem;">
+          <h2>Mis Reservas</h2>
+          <p>Gestiona tus reservas de manera fácil y rápida</p>
+        </div>
         <div id="reservationsList"></div>
       </div>
     </section>
@@ -42,54 +45,77 @@
 
   <!-- MODAL EDITAR -->
   <div id="editModal" class="modal-overlay" style="display:none;">
-    <div class="modal-content">
-      <h2>Editar Reserva</h2>
-      <form id="editReservationForm" class="form">
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="editIDHabitacion">Habitación:</label>
-            <select id="editIDHabitacion" required>
-              <option value="">Seleccione una habitación</option>
-            </select>
+    <div class="modal-content modal-content--wide">
+      <div class="modal-header">
+        <h2>Editar Reserva</h2>
+        <button class="btn-close" onclick="cerrarModal()">×</button>
+      </div>
+      
+      <form id="editReservationForm" class="nr-layout">
+        
+        <!-- Lado Izquierdo: Formulario -->
+        <div class="nr-form">
+          <div class="nr-grid-2">
+            <div class="nr-field">
+              <label for="editIDHabitacion">Habitación</label>
+              <select id="editIDHabitacion" required>
+                <option value="">Seleccione una habitación</option>
+              </select>
+            </div>
+            <div class="nr-field">
+              <label for="editIDPaquete">Paquete</label>
+              <select id="editIDPaquete" required>
+                <option value="">Seleccione un paquete</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="editIDPaquete">Paquete:</label>
-            <select id="editIDPaquete" required>
-              <option value="">Seleccione un paquete</option>
-            </select>
+
+          <div class="nr-card" style="padding: 1rem;">
+            <div class="nr-card__titulo" style="font-size: 0.8rem; margin-bottom: 0.5rem;">Servicios Adicionales</div>
+            <div id="editServiciosContainer" class="nr-grid-3" style="gap: 0.5rem;"></div>
           </div>
-          <div class="form-group full-width">
-            <label>Servicios Adicionales:</label>
-            <div id="editServiciosContainer"></div>
+
+          <div class="nr-grid-3">
+            <div class="nr-field">
+              <label for="editFechaInicio">Fecha Inicio</label>
+              <input type="date" id="editFechaInicio" required>
+            </div>
+            <div class="nr-field">
+              <label for="editFechaFinalizacion">Fecha Fin</label>
+              <input type="date" id="editFechaFinalizacion" required>
+            </div>
+            <div class="nr-field">
+              <label for="editMetodoPago">Pago</label>
+              <select id="editMetodoPago" required>
+                <option value="">Método de pago</option>
+              </select>
+            </div>
           </div>
-          <div class="form-group">
-            <label for="editFechaInicio">Fecha de Inicio:</label>
-            <input type="date" id="editFechaInicio" required>
-          </div>
-          <div class="form-group">
-            <label for="editFechaFinalizacion">Fecha de Finalización:</label>
-            <input type="date" id="editFechaFinalizacion" required>
-          </div>
-          <div class="form-group">
-            <label for="editMetodoPago">Método de Pago:</label>
-            <select id="editMetodoPago" required>
-              <option value="">Seleccione método de pago</option>
-            </select>
+
+          <div class="actions-row" style="margin-top: 1rem;">
+            <button type="button" class="btn btn-primario" onclick="guardarEdicion()">Guardar Cambios</button>
+            <button type="button" class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
           </div>
         </div>
 
-        <div class="resumen" id="editResumen">
-          <h3>Resumen de Pago</h3>
-          <p>Subtotal: <span id="editSubtotal">$0</span></p>
-          <p>IVA (19%): <span id="editIva">$0</span></p>
-          <p class="total-row"><strong>Total:</strong> <span id="editTotal">$0</span></p>
+        <!-- Lado Derecho: Resumen -->
+        <div class="nr-resumen" id="editResumen">
+          <div class="nr-resumen__titulo">Resumen de Pago</div>
+          <div class="nr-resumen__fila">
+            <span>Subtotal</span>
+            <span id="editSubtotal">$0</span>
+          </div>
+          <div class="nr-resumen__fila">
+            <span>IVA (19%)</span>
+            <span id="editIva">$0</span>
+          </div>
+          <div class="nr-resumen__total">
+            <span>Total</span>
+            <span id="editTotal">$0</span>
+          </div>
         </div>
 
         <input type="hidden" id="editIdReserva">
-        <div class="actions-row">
-          <button type="button" class="btn" onclick="guardarEdicion()">Guardar</button>
-          <button type="button" class="btn btn-outline" onclick="cerrarModal()">Cancelar</button>
-        </div>
       </form>
     </div>
   </div>

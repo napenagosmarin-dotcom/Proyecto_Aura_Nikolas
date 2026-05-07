@@ -108,9 +108,9 @@ async function loadReservations() {
                     <p><strong>Estado:</strong> ${r.NombreEstadoReserva}</p>
                 </div>
                 <div class="reservation-actions">
-                    <button class="btn" onclick="loadReservationDetails(${r.IdReserva})">Ver detalles</button>
-                    <button class="btn btn-outline" onclick="abrirEdicion(${r.IdReserva})">Editar</button>
-                    <button class="btn btn-danger" onclick="deleteReservation(${r.IdReserva})">Eliminar</button>
+                    <button class="btn btn-outline-primario" onclick="loadReservationDetails(${r.IdReserva})">Ver detalles</button>
+                    <button class="btn btn-outline-azul" onclick="abrirEdicion(${r.IdReserva})">Editar</button>
+                    <button class="btn btn-outline-peligro" onclick="deleteReservation(${r.IdReserva})">Eliminar</button>
                 </div>
             </div>
         `).join('');
@@ -135,46 +135,89 @@ async function loadReservationDetails(id) {
 
 function buildReservationDetails(r) {
     const serviciosHtml = (r.servicios || []).length > 0
-        ? `<ul>${r.servicios.map(s => `<li>${s.NombreServicio} - ${formatCurrency(s.Costo)}</li>`).join('')}</ul>`
-        : '<p style="color: var(--gris); margin: 0;">No hay servicios adicionales.</p>';
+        ? `<div class="details-services-grid">${r.servicios.map(s => `
+            <div class="detail-service-item">
+                <span class="service-name">${s.NombreServicio}</span>
+                <span class="service-price">${formatCurrency(s.Costo)}</span>
+            </div>
+          `).join('')}</div>`
+        : '<p style="color: rgba(255,255,255,0.4); margin: 0;">No hay servicios adicionales.</p>';
 
     return `
-        <div class="reservation-details-card">
-            <div class="details-header">
+        <div class="reservation-details-premium">
+            <div class="modal-header">
                 <div>
-                    <h3>Reserva #${r.IdReserva}</h3>
-                    <p style="color: var(--gris); margin: 0.5rem 0 0;">Estado: ${r.NombreEstadoReserva}</p>
+                    <h2 style="margin:0;">Detalles de la Reserva <span style="color:rgba(255,255,255,0.3); font-size: 1rem; font-weight: 400;">#${r.IdReserva}</span></h2>
+                    <div class="status-badge status-${r.NombreEstadoReserva.toLowerCase()}">${r.NombreEstadoReserva}</div>
                 </div>
-                <div class="details-actions">
-                    <button class="btn" onclick="abrirEdicion(${r.IdReserva})">Editar</button>
-                    <button class="btn btn-outline" onclick="ocultarDetalles()">Cerrar</button>
-                </div>
+                <button class="btn-close" onclick="ocultarDetalles()">×</button>
             </div>
-            <div class="details-grid">
-                <div>
-                    <p><strong>Cliente:</strong> ${r.NombreUsuario}</p>
-                    <p><strong>Número de documento:</strong> ${r.NroDocumentoCliente || '-'}</p>
-                    <p><strong>Habitación:</strong> ${r.NombreHabitacion || '-'}</p>
-                    <p><strong>Paquete:</strong> ${r.NombrePaquete || '-'}</p>
+
+            <div class="nr-layout" style="margin-top: 1.5rem;">
+                <!-- Lado Izquierdo: Información -->
+                <div class="nr-form">
+                    <div class="nr-grid-2">
+                        <div class="detail-info-group">
+                            <label>Información del Cliente</label>
+                            <p><strong>${r.NombreUsuario}</strong></p>
+                            <p>Documento: ${r.NroDocumentoCliente || '-'}</p>
+                        </div>
+                        <div class="detail-info-group">
+                            <label>Estadía</label>
+                            <p>Inicio: ${r.FechaInicio ? new Date(r.FechaInicio).toLocaleDateString() : '-'}</p>
+                            <p>Fin: ${r.FechaFinalizacion ? new Date(r.FechaFinalizacion).toLocaleDateString() : '-'}</p>
+                        </div>
+                    </div>
+
+                    <div class="nr-card" style="padding: 1.25rem;">
+                        <div class="nr-card__titulo">Habitación y Paquete</div>
+                        <div class="nr-grid-2">
+                            <div>
+                                <p style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-bottom: 0.2rem;">Habitación</p>
+                                <p style="font-weight: 600;">${r.NombreHabitacion || '-'}</p>
+                            </div>
+                            <div>
+                                <p style="font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-bottom: 0.2rem;">Paquete</p>
+                                <p style="font-weight: 600;">${r.NombrePaquete || '-'}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="nr-card" style="padding: 1.25rem;">
+                        <div class="nr-card__titulo">Servicios Adicionales</div>
+                        ${serviciosHtml}
+                    </div>
                 </div>
-                <div>
-                    <p><strong>Método de pago:</strong> ${r.NomMetodoPago}</p>
-                    <p><strong>Fecha inicio:</strong> ${r.FechaInicio ? new Date(r.FechaInicio).toLocaleDateString() : '-'}</p>
-                    <p><strong>Fecha final:</strong> ${r.FechaFinalizacion ? new Date(r.FechaFinalizacion).toLocaleDateString() : '-'}</p>
-                    <p><strong>Fecha de reserva:</strong> ${r.FechaReserva ? new Date(r.FechaReserva).toLocaleDateString() : '-'}</p>
+
+                <!-- Lado Derecho: Resumen Financiero -->
+                <div class="nr-resumen">
+                    <div class="nr-resumen__titulo">Resumen de Pago</div>
+                    <div class="nr-resumen__fila">
+                        <span>Método de Pago</span>
+                        <span>${r.NomMetodoPago}</span>
+                    </div>
+                    <div class="nr-resumen__fila">
+                        <span>Subtotal</span>
+                        <span>${formatCurrency(r.SubTotal || 0)}</span>
+                    </div>
+                    <div class="nr-resumen__fila">
+                        <span>Descuento</span>
+                        <span>${formatCurrency(r.Descuento || 0)}</span>
+                    </div>
+                    <div class="nr-resumen__fila">
+                        <span>IVA (19%)</span>
+                        <span>${formatCurrency(r.IVA || 0)}</span>
+                    </div>
+                    <div class="nr-resumen__total">
+                        <span>Total Pagado</span>
+                        <span>${formatCurrency(r.MontoTotal || 0)}</span>
+                    </div>
+                    
+                    <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <button class="btn btn-primario" onclick="abrirEdicion(${r.IdReserva})">Editar Reserva</button>
+                        <button class="btn btn-outline" onclick="ocultarDetalles()">Cerrar</button>
+                    </div>
                 </div>
-            </div>
-            <div class="details-grid">
-                <div>
-                    <p><strong>Subtotal:</strong> ${formatCurrency(r.SubTotal || 0)}</p>
-                    <p><strong>Descuento:</strong> ${formatCurrency(r.Descuento || 0)}</p>
-                    <p><strong>IVA (19%):</strong> ${formatCurrency(r.IVA || 0)}</p>
-                    <p><strong>Total:</strong> ${formatCurrency(r.MontoTotal || 0)}</p>
-                </div>
-            </div>
-            <div class="details-services">
-                <h4>Servicios Adicionales</h4>
-                ${serviciosHtml}
             </div>
         </div>
     `;
@@ -234,10 +277,16 @@ function renderServiciosCheckboxes(selectedServices = []) {
 
     serviciosData.forEach(servicio => {
         const div = document.createElement('div');
+        div.className = 'servicio-item';
         div.innerHTML = `
-            <label>
-                <input type="checkbox" class="edit-servicio-check" value="${servicio.IDServicio}" data-costo="${servicio.Costo}" ${selectedIds.includes(servicio.IDServicio) ? 'checked' : ''}>
-                ${servicio.NombreServicio} - ${formatCurrency(servicio.Costo)}
+            <label class="servicio-label" style="padding: 1rem; gap: 0.75rem;">
+                <input type="checkbox" class="edit-servicio-check" value="${servicio.IDServicio}" data-costo="${servicio.Costo}" ${selectedIds.includes(servicio.IDServicio) ? 'checked' : ''} style="width: 18px; height: 18px; margin-top: 2px;">
+                <div class="servicio-main">
+                    <div class="servicio-header" style="flex-direction: column; align-items: flex-start; gap: 0.1rem;">
+                        <span class="servicio-name" style="font-size: 0.9rem; font-weight: 600;">${servicio.NombreServicio}</span>
+                        <span class="servicio-price" style="font-size: 0.8rem; color: #00d4ff;">$${servicio.Costo.toLocaleString()}</span>
+                    </div>
+                </div>
             </label>
         `;
         container.appendChild(div);

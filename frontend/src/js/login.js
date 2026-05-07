@@ -1,35 +1,40 @@
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    
-    const errorEl = document.getElementById('errorMessage');
-    errorEl.textContent = 'Cargando...';
+  e.preventDefault();
 
-    const data = {
-        Email: document.getElementById('Email').value,
-        Contrasena: document.getElementById('Contrasena').value
-    };
+  const errorEl = document.getElementById('errorMessage');
+  errorEl.textContent = 'Cargando...';
 
-    try {
-        const response = await fetch('/api/auth/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
+  const data = {
+    Email: document.getElementById('Email').value,
+    Contrasena: document.getElementById('Contrasena').value
+  };
 
-        const result = await response.json();
-        
-        if (response.ok && result.user) {
-            localStorage.setItem('user', JSON.stringify(result.user));
-            console.log('Usuario guardado:', result.user);
-            setTimeout(() => {
-                window.location.href = '/src/pages/reservas.html';
-            }, 500);
-        } else {
-            errorEl.textContent = result.message || 'Email o contraseña incorrectos';
-            console.error('Login failed:', result);
-        }
-    } catch (error) {
-        errorEl.textContent = 'Error de conexión al servidor';
-        console.error('Connection error:', error);
+  try {
+    const response = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+
+    const result = await response.json();
+
+    if (response.ok && result.user) {
+      localStorage.setItem('user', JSON.stringify(result.user));
+
+      const idRol = Number(result.user.IDRol);
+
+      if (idRol === 2) {
+        window.location.href = '/src/pages/admin.html';
+      } else {
+        window.location.href = '/src/pages/reservas.html';
+      }
+
+    } else {
+      errorEl.textContent = result.message || 'Email o contraseña incorrectos';
     }
+
+  } catch (error) {
+    errorEl.textContent = 'Error de conexión al servidor';
+    console.error('Connection error:', error);
+  }
 });

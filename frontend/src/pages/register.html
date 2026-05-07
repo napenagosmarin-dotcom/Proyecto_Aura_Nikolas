@@ -11,78 +11,124 @@
 </head>
 <body>
 
-  <div id="header-container"></div>
+  <main class="main-content main-content--auth" id="mainContent">
+    <section class="auth-section">
+      <div class="auth-form-panel auth-form-panel--solo">
+        <form id="registerForm" class="form form-auth login-premium">
+          <div class="login-header">
+            <h2>Crear Cuenta</h2>
+            <p>Completa tus datos para unirte a nosotros.</p>
+          </div>
 
-  <button class="sidebar__toggle" id="sidebarToggle" aria-label="Abrir menú">☰</button>
-
-  <div class="sidebar__overlay" id="sidebarOverlay"></div>
-
-  <main class="main-content" id="mainContent">
-
-    <section class="seccion">
-      <div class="container">
-        <div class="auth-layout" style="min-height: 80vh; padding: 2rem 0;">
-          <form id="registerForm" class="form form-auth" style="max-width: 500px; width: 100%;">
-            <h2>Registrarse</h2>
-            <div class="form-grid" style="grid-template-columns: 1fr;">
-              <div class="form-group">
-                <label for="NombreUsuario">Nombre de Usuario:</label>
-                <input type="text" id="NombreUsuario" required>
-              </div>
-              <div class="form-group">
-                <label for="Apellido">Apellido:</label>
-                <input type="text" id="Apellido" required>
-              </div>
-              <div class="form-group">
-                <label for="Email">Email:</label>
-                <input type="email" id="Email" required>
-              </div>
-              <div class="form-group">
-                <label for="Contrasena">Contraseña:</label>
-                <input type="password" id="Contrasena" required>
-              </div>
-              <div class="form-group">
-                <label for="ConfirmarContrasena">Confirmar Contraseña:</label>
-                <input type="password" id="ConfirmarContrasena" required>
-              </div>
-              <div class="form-group">
-                <label for="TipoDocumento">Tipo de Documento:</label>
-                <input type="text" id="TipoDocumento" required>
-              </div>
-              <div class="form-group">
-                <label for="NumeroDocumento">Número de Documento:</label>
-                <input type="text" id="NumeroDocumento" required>
-              </div>
-              <div class="form-group">
-                <label for="Telefono">Teléfono:</label>
-                <input type="text" id="Telefono" required>
-              </div>
-              <div class="form-group">
-                <label for="Pais">País:</label>
-                <input type="text" id="Pais" required>
-              </div>
-              <div class="form-group">
-                <label for="Direccion">Dirección:</label>
-                <input type="text" id="Direccion" required>
+          <h4 class="form-section-title">Información Personal</h4>
+          <div class="form-grid premium-grid">
+            <div class="form-group premium-group">
+              <label for="NombreUsuario">Nombre(s)</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="user" class="input-icon"></i>
+                <input type="text" id="NombreUsuario" placeholder="Ej. Juan" required>
               </div>
             </div>
-            <button type="submit" class="btn" style="margin-top: 1.5rem;">Registrarse</button>
-            <p id="errorMessage" class="error" style="color: var(--color-error); text-align: center; margin-top: 1rem;"></p>
-            <p style="text-align: center; margin-top: 2rem; color: var(--color-texto-claro); font-size: 0.95rem;">
-              ¿Ya tienes cuenta? <a href="/src/pages/login.html" style="color: var(--color-secundario); text-decoration: none; font-weight: 600;">Inicia sesión</a>
-            </p>
-          </form>
-        </div>
+            <div class="form-group premium-group">
+              <label for="Apellido">Apellido(s)</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="user" class="input-icon"></i>
+                <input type="text" id="Apellido" placeholder="Ej. Pérez" required>
+              </div>
+            </div>
+            <div class="form-group premium-group">
+              <label for="TipoDocumento">Tipo de Doc.</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="file-text" class="input-icon"></i>
+                <select id="TipoDocumento" required class="premium-select">
+                  <option value="" disabled selected>Seleccione...</option>
+                  <option value="DNI">DNI</option>
+                  <option value="Pasaporte">Pasaporte</option>
+                  <option value="Cédula">Cédula</option>
+                  <option value="Otro">Otro</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group premium-group">
+              <label for="NumeroDocumento">Nº de Documento</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="hash" class="input-icon"></i>
+                <input type="text" id="NumeroDocumento" placeholder="123456789" required>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="form-section-title">Datos de Contacto</h4>
+          <div class="form-grid premium-grid">
+            <div class="form-group premium-group">
+              <label for="Pais">País</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="map-pin" class="input-icon"></i>
+                <input type="text" id="Pais" placeholder="Ej. Colombia" required>
+              </div>
+            </div>
+            <div class="form-group premium-group">
+              <label for="Telefono">Teléfono</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="phone" class="input-icon"></i>
+                <input type="text" id="Telefono" placeholder="+57 300 000 0000" required>
+              </div>
+            </div>
+            <div class="form-group premium-group" style="grid-column: 1 / -1;">
+              <label for="Direccion">Dirección Completa</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="map" class="input-icon"></i>
+                <input type="text" id="Direccion" placeholder="Calle 123 #45-67, Ciudad" required>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="form-section-title">Credenciales de Acceso</h4>
+          <div class="form-group premium-group">
+            <label for="Email">Correo Electrónico</label>
+            <div class="input-icon-wrapper">
+              <i data-lucide="mail" class="input-icon"></i>
+              <input type="email" id="Email" placeholder="tu@correo.com" required>
+            </div>
+          </div>
+          <div class="form-grid premium-grid">
+            <div class="form-group premium-group">
+              <label for="Contrasena">Contraseña</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="lock" class="input-icon"></i>
+                <input type="password" id="Contrasena" placeholder="••••••••" required>
+              </div>
+            </div>
+            <div class="form-group premium-group">
+              <label for="ConfirmarContrasena">Confirmar Contraseña</label>
+              <div class="input-icon-wrapper">
+                <i data-lucide="shield" class="input-icon"></i>
+                <input type="password" id="ConfirmarContrasena" placeholder="••••••••" required>
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primario btn-login">
+            Completar Registro <i data-lucide="arrow-right" class="btn-icon"></i>
+          </button>
+
+          <p id="errorMessage" class="error-msg" style="text-align: center; margin-top: 10px; display: none;"></p>
+
+          <div class="login-divider">
+            <span>o</span>
+          </div>
+
+          <p class="login-register-text">
+            ¿Ya tienes una cuenta? <a href="/src/pages/login.html">Inicia sesión aquí</a>
+          </p>
+        </form>
       </div>
     </section>
-
-    <div id="footer-container"></div>
-
   </main>
 
   <script src="../js/api.js"></script>
   <script src="../js/app.js"></script>
   <script src="../js/register.js"></script>
-
+  <script>lucide.createIcons();</script>
 </body>
 </html>
