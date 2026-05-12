@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../css/variables.css" />
   <link rel="stylesheet" href="../css/styles.css" />
   <link rel="stylesheet" href="../css/admin.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
@@ -58,6 +59,10 @@
       </div>
 
       <nav class="admin-sidebar__nav">
+        <button class="admin-nav-item" data-section="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </button>
         <button class="admin-nav-item active" data-section="reservas">
           <i data-lucide="calendar-check"></i>
           <span>Reservas</span>
@@ -73,6 +78,10 @@
         <button class="admin-nav-item" data-section="clientes">
           <i data-lucide="user-check"></i>
           <span>Clientes</span>
+        </button>
+        <button class="admin-nav-item" data-section="cabanas">
+          <i data-lucide="tent"></i>
+          <span>Cabañas</span>
         </button>
         <button class="admin-nav-item" data-section="paquetes">
           <i data-lucide="package"></i>
@@ -115,6 +124,74 @@
       </header>
 
       <!-- SECCIONES -->
+      <section id="section-dashboard" class="admin-section">
+        <div class="dashboard-content">
+          <!-- Tarjetas de resumen -->
+          <div class="stats-grid">
+            <div class="stat-card stat-card--cabanas">
+              <div class="stat-card__icon">🏕️</div>
+              <div class="stat-card__info">
+                <span class="stat-card__numero" id="stat-cabanas">—</span>
+                <span class="stat-card__label">Cabañas</span>
+              </div>
+              <div class="stat-card__sub" id="stat-cabanas-activas">Cargando...</div>
+            </div>
+
+            <div class="stat-card stat-card--habitaciones">
+              <div class="stat-card__icon">🛏️</div>
+              <div class="stat-card__info">
+                <span class="stat-card__numero" id="stat-habitaciones">—</span>
+                <span class="stat-card__label">Habitaciones</span>
+              </div>
+              <div class="stat-card__sub" id="stat-habitaciones-sub">Cargando...</div>
+            </div>
+
+            <div class="stat-card stat-card--clientes">
+              <div class="stat-card__icon">👥</div>
+              <div class="stat-card__info">
+                <span class="stat-card__numero" id="stat-clientes">—</span>
+                <span class="stat-card__label">Clientes</span>
+              </div>
+              <div class="stat-card__sub" id="stat-clientes-activos">Cargando...</div>
+            </div>
+
+            <div class="stat-card stat-card--paquetes">
+              <div class="stat-card__icon">✈️</div>
+              <div class="stat-card__info">
+                <span class="stat-card__numero" id="stat-paquetes">—</span>
+                <span class="stat-card__label">Paquetes</span>
+              </div>
+              <div class="stat-card__sub" id="stat-paquetes-sub">Cargando...</div>
+            </div>
+
+            <div class="stat-card stat-card--servicios">
+              <div class="stat-card__icon">⭐</div>
+              <div class="stat-card__info">
+                <span class="stat-card__numero" id="stat-servicios">—</span>
+                <span class="stat-card__label">Servicios</span>
+              </div>
+              <div class="stat-card__sub" id="stat-servicios-sub">Cargando...</div>
+            </div>
+          </div>
+
+          <!-- Gráficas -->
+          <div class="dashboard-charts">
+            <div class="chart-container">
+              <h3>🏕️ Estado de Cabañas</h3>
+              <canvas id="grafica-cabanas"></canvas>
+            </div>
+            <div class="chart-container">
+              <h3>👥 Clientes</h3>
+              <canvas id="grafica-clientes"></canvas>
+            </div>
+            <div class="chart-container chart-wide">
+              <h3>📋 Reservas por Estado</h3>
+              <canvas id="grafica-reservas"></canvas>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section id="section-reservas" class="admin-section active">
         <div id="reservasList"></div>
       </section>
@@ -131,6 +208,10 @@
         <div id="clientesList"></div>
       </section>
 
+      <section id="section-cabanas" class="admin-section">
+        <div id="cabanasList"></div>
+      </section>
+
       <section id="section-paquetes" class="admin-section">
         <div id="paquetesList"></div>
       </section>
@@ -142,6 +223,33 @@
     </main>
   </div>
 
+  <!-- MODAL DE EDICIÓN / CREACIÓN -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 id="modalTitle">Nuevo Registro</h3>
+        <button onclick="cerrarModal()" class="modal-close">&times;</button>
+      </div>
+      <div id="modalContent" class="modal-body">
+        <!-- El contenido se carga dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL DE VISTA DETALLE -->
+  <div id="detalleModalOverlay" class="modal-overlay">
+    <div class="modal-box modal-box-ver">
+      <div class="modal-header">
+        <h3 id="detalleTitulo">Detalle</h3>
+        <button onclick="cerrarDetalle()" class="modal-close">&times;</button>
+      </div>
+      <div id="detalleContent" class="modal-ver-body">
+        <!-- El contenido se carga dinámicamente -->
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
   <script src="../js/admin.js"></script>
   <script>lucide.createIcons();</script>
 </body>

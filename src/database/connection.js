@@ -4,7 +4,7 @@ const connection = mysql.createPool({
     host: 'localhost',
     user: 'root',
     password: '',
-    database: 'hospedaje',
+    database: 'aura_travel',
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0

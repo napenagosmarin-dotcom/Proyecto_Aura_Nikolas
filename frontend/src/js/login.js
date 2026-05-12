@@ -3,6 +3,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
   const errorEl = document.getElementById('errorMessage');
   errorEl.textContent = 'Cargando...';
+  errorEl.classList.add('visible');
 
   const data = {
     Email: document.getElementById('Email').value,
@@ -19,6 +20,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const result = await response.json();
 
     if (response.ok && result.user) {
+      errorEl.classList.remove('visible');
       localStorage.setItem('user', JSON.stringify(result.user));
 
       const idRol = Number(result.user.IDRol);
@@ -31,10 +33,12 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
     } else {
       errorEl.textContent = result.message || 'Email o contraseña incorrectos';
+      errorEl.classList.add('visible');
     }
 
   } catch (error) {
     errorEl.textContent = 'Error de conexión al servidor';
+    errorEl.classList.add('visible');
     console.error('Connection error:', error);
   }
 });

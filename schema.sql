@@ -1,20 +1,50 @@
 -- Crear base de datos si no existe
-CREATE DATABASE IF NOT EXISTS hospedaje;
-USE hospedaje;
+CREATE DATABASE IF NOT EXISTS aura;
+USE aura;
 
 -- Tabla usuarios
 CREATE TABLE IF NOT EXISTS usuarios (
     IDUsuario INT AUTO_INCREMENT PRIMARY KEY,
     NombreUsuario VARCHAR(255) NOT NULL,
-    Email VARCHAR(255),
-    Password VARCHAR(255),
-    Rol VARCHAR(50)
+    Apellido VARCHAR(255),
+    Email VARCHAR(255) UNIQUE,
+    Contrasena VARCHAR(255) NOT NULL,
+    TipoDocumento VARCHAR(50),
+    NumeroDocumento VARCHAR(50),
+    Telefono VARCHAR(50),
+    Pais VARCHAR(100),
+    Direccion TEXT,
+    IDRol INT DEFAULT 1
 );
 
 -- Tabla estadosreserva
 CREATE TABLE IF NOT EXISTS estadosreserva (
     IdEstadoReserva INT AUTO_INCREMENT PRIMARY KEY,
     NombreEstadoReserva VARCHAR(255) NOT NULL
+);
+
+-- Tabla cabanas
+CREATE TABLE IF NOT EXISTS cabanas (
+    IDCabana INT AUTO_INCREMENT PRIMARY KEY,
+    NombreCabana VARCHAR(255) NOT NULL,
+    Descripcion TEXT,
+    CapacidadPersonas INT,
+    PrecioNoche DECIMAL(10,2),
+    Estado INT DEFAULT 1,
+    ImagenCabana VARCHAR(255)
+);
+
+-- Tabla clientes
+CREATE TABLE IF NOT EXISTS clientes (
+    IDCliente INT AUTO_INCREMENT PRIMARY KEY,
+    NroDocumento VARCHAR(50) UNIQUE,
+    Nombre VARCHAR(255),
+    Apellido VARCHAR(255),
+    Direccion TEXT,
+    Email VARCHAR(255),
+    Telefono VARCHAR(50),
+    Estado INT DEFAULT 1,
+    IDRol INT DEFAULT 1
 );
 
 -- Tabla metodopago
@@ -90,9 +120,9 @@ CREATE TABLE IF NOT EXISTS detallereservaservicio (
 );
 
 -- Insertar datos de ejemplo
-INSERT INTO usuarios (NombreUsuario, Email, Password, Rol) VALUES
-('Admin', 'admin@example.com', 'password', 'admin'),
-('User1', 'user1@example.com', 'password', 'user');
+INSERT INTO usuarios (NombreUsuario, Apellido, Email, Contrasena, IDRol) VALUES
+('Admin', 'Sistema', 'admin@example.com', 'password', 2),
+('User1', 'Prueba', 'user1@example.com', 'password', 1);
 
 INSERT INTO estadosreserva (NombreEstadoReserva) VALUES
 ('Pendiente'),

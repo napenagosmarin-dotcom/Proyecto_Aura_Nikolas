@@ -490,6 +490,7 @@ img { max-width: 100%; display: block; }
   position: relative;
 }
 
+
 .modal-box.modal-box-ver {
   width: min(100%, 760px);
   max-width: 760px;
@@ -547,18 +548,20 @@ img { max-width: 100%; display: block; }
 .modal-form select,
 .modal-form textarea {
   width: 100%;
-  padding: 0.95rem 1rem;
-  border-radius: 14px;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #fbfbff;
-  color: var(--color-texto);
+  padding: 1rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  background: #ffffff;
+  color: #1a1a2e;
   font-family: var(--fuente-secundaria);
   font-size: 0.95rem;
-  transition: var(--transicion);
+  transition: all 0.3s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
 .modal-form textarea {
-  min-height: 120px;
+  min-height: 140px;
+  line-height: 1.6;
   resize: vertical;
 }
 
@@ -566,7 +569,8 @@ img { max-width: 100%; display: block; }
 .modal-form select:focus,
 .modal-form textarea:focus {
   border-color: var(--color-secundario);
-  box-shadow: 0 0 0 4px rgba(123, 47, 247, 0.08);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(123, 47, 247, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.02);
   outline: none;
 }
 
@@ -1514,9 +1518,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   height: 0;
   border-left: 8px solid transparent;
   border-right: 8px solid transparent;
-  <link rel="stylesheet" href="../css/styles.css" />
-  <link rel="stylesheet" href="../css/nueva-reserva.css" />
-  <script src="https://unpkg.com/lucide@latest"></script>;
+
   border-bottom: 8px solid var(--color-blanco);
   filter: drop-shadow(0 -1px 1px rgba(123, 47, 247, 0.1));
 }
@@ -2453,9 +2455,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   max-width: 640px;
 }
 
-.auth-form-panel--solo:has(#registerForm) {
-  max-width: 640px;
-}
 
 @media (max-width: 680px) {
   .auth-form-panel--solo {
@@ -2467,3 +2466,14 @@ input[type="date"]::-webkit-calendar-picker-indicator {
     grid-template-columns: 1fr;
   }
 }
+
+/* ===== SECCIONES ESPECÍFICAS ===== */
+#seccion-clientes #lista,
+#seccion-cabanas #lista-cabanas {
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

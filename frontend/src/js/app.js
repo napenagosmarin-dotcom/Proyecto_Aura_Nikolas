@@ -16,18 +16,24 @@ async function cargarComponentes() {
     if (isClientPage) headerFile = 'client-header.html';
     else if (isPublicPage) headerFile = 'public-header.html';
     
-    const headerRes = await fetch(`${base}components/${headerFile}`);
-    const headerHTML = await headerRes.text();
-    document.getElementById('header-container').innerHTML = headerHTML;
+    const headerContainer = document.getElementById('header-container');
+    if (headerContainer) {
+      const headerRes = await fetch(`${base}components/${headerFile}`);
+      const headerHTML = await headerRes.text();
+      headerContainer.innerHTML = headerHTML;
+    }
 
     if (window.lucide) lucide.createIcons();
 
     inicializarSidebar();
     marcarNavActivo();
 
-    const footerRes = await fetch(`${base}components/footer.html`);
-    const footerHTML = await footerRes.text();
-    document.getElementById('footer-container').innerHTML = footerHTML;
+    const footerContainer = document.getElementById('footer-container');
+    if (footerContainer) {
+      const footerRes = await fetch(`${base}components/footer.html`);
+      const footerHTML = await footerRes.text();
+      footerContainer.innerHTML = footerHTML;
+    }
 
   } catch (error) {
     console.error('Error cargando componentes:', error);
