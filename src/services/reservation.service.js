@@ -5,18 +5,21 @@ const db = require('../config/db');
 // Obtener todas las reservas
 const getAllReservations = async () => {
   try {
-    const sql = `SELECT r.*, u.NombreUsuario, e.NombreEstadoReserva, m.NomMetodoPago,
+    const sql = `SELECT r.*, u.NombreUsuario, u.NumeroDocumento AS NroDocumentoCliente, 
+                        e.NombreEstadoReserva, m.NomMetodoPago,
                         p.IDPaquete, p.NombrePaquete, p.Precio AS PrecioPaquete,
-                        h.IDHabitacion AS IDHabitacion,
-                        h.NombreHabitacion AS NombreHabitacion,
-                        h.Costo AS CostoHabitacion
+                        COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
+                        COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
+                        COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
                  FROM reserva r
                  JOIN usuarios u ON r.UsuarioIdusuario = u.IDUsuario
                  LEFT JOIN estadosreserva e ON r.IdEstadoReserva = e.IdEstadoReserva
                  LEFT JOIN metodopago m ON r.MetodoPago = m.IdMetodoPago
+                 LEFT JOIN detallereservahabitacion drh ON r.IdReserva = drh.IdReserva
+                 LEFT JOIN habitacion h_direct ON drh.IDHabitacion = h_direct.IDHabitacion
                  LEFT JOIN detallereservapaquetes drp ON drp.IDReserva = r.IdReserva
                  LEFT JOIN paquetes p ON drp.IDPaquete = p.IDPaquete
-                 LEFT JOIN habitacion h ON p.IDHabitacion = h.IDHabitacion`;
+                 LEFT JOIN habitacion h_paq ON p.IDHabitacion = h_paq.IDHabitacion`;
     const [results] = await db.query(sql);
     return results;
   } catch (error) {
@@ -27,25 +30,28 @@ const getAllReservations = async () => {
 // Obtener reserva por ID
 const getReservationById = async (id) => {
   try {
-    const sql = `SELECT r.*, u.NombreUsuario, e.NombreEstadoReserva, m.NomMetodoPago,
+    const sql = `SELECT r.*, u.NombreUsuario, u.NumeroDocumento AS NroDocumentoCliente, 
+                        e.NombreEstadoReserva, m.NomMetodoPago,
                         p.IDPaquete, p.NombrePaquete, p.Precio AS PrecioPaquete,
-                        h.IDHabitacion AS IDHabitacion,
-                        h.NombreHabitacion AS NombreHabitacion,
-                        h.Costo AS CostoHabitacion
+                        COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
+                        COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
+                        COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
                  FROM reserva r
                  JOIN usuarios u ON r.UsuarioIdusuario = u.IDUsuario
                  LEFT JOIN estadosreserva e ON r.IdEstadoReserva = e.IdEstadoReserva
                  LEFT JOIN metodopago m ON r.MetodoPago = m.IdMetodoPago
+                 LEFT JOIN detallereservahabitacion drh ON r.IdReserva = drh.IdReserva
+                 LEFT JOIN habitacion h_direct ON drh.IDHabitacion = h_direct.IDHabitacion
                  LEFT JOIN detallereservapaquetes drp ON drp.IDReserva = r.IdReserva
                  LEFT JOIN paquetes p ON drp.IDPaquete = p.IDPaquete
-                 LEFT JOIN habitacion h ON p.IDHabitacion = h.IDHabitacion
+                 LEFT JOIN habitacion h_paq ON p.IDHabitacion = h_paq.IDHabitacion
                  WHERE r.IdReserva = ?`;
 
     const [results] = await db.query(sql, [id]);
     const reservation = results[0];
     if (!reservation) return null;
 
-    const servicioSql = `SELECT s.IDServicio, s.NombreServicio, s.Costo
+    const servicioSql = `SELECT s.IDServicio, s.nombre AS NombreServicio, s.precio AS Costo
                          FROM detallereservaservicio drs
                          JOIN servicios s ON drs.IDServicio = s.IDServicio
                          WHERE drs.IDReserva = ?`;
@@ -63,18 +69,21 @@ const getReservationsByUser = async (userId) => {
     const parsedUserId = Number(userId);
     if (!Number.isInteger(parsedUserId)) return [];
  
-    const sql = `SELECT r.*, u.NombreUsuario, e.NombreEstadoReserva, m.NomMetodoPago,
+    const sql = `SELECT r.*, u.NombreUsuario, u.NumeroDocumento AS NroDocumentoCliente, 
+                        e.NombreEstadoReserva, m.NomMetodoPago,
                         p.IDPaquete, p.NombrePaquete, p.Precio AS PrecioPaquete,
-                        h.IDHabitacion AS IDHabitacion,
-                        h.NombreHabitacion AS NombreHabitacion,
-                        h.Costo AS CostoHabitacion
+                        COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
+                        COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
+                        COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
                  FROM reserva r
                  JOIN usuarios u ON r.UsuarioIdusuario = u.IDUsuario
                  LEFT JOIN estadosreserva e ON r.IdEstadoReserva = e.IdEstadoReserva
                  LEFT JOIN metodopago m ON r.MetodoPago = m.IdMetodoPago
+                 LEFT JOIN detallereservahabitacion drh ON r.IdReserva = drh.IdReserva
+                 LEFT JOIN habitacion h_direct ON drh.IDHabitacion = h_direct.IDHabitacion
                  LEFT JOIN detallereservapaquetes drp ON drp.IDReserva = r.IdReserva
                  LEFT JOIN paquetes p ON drp.IDPaquete = p.IDPaquete
-                 LEFT JOIN habitacion h ON p.IDHabitacion = h.IDHabitacion
+                 LEFT JOIN habitacion h_paq ON p.IDHabitacion = h_paq.IDHabitacion
                  WHERE r.UsuarioIdusuario = ?`;
     const [results] = await db.query(sql, [parsedUserId]);
     return results;
@@ -133,6 +142,22 @@ const insertPackageDetail = async (connection, reservaId, IDPaquete, precio) => 
 
 
 
+const insertHabitacionDetail = async (connection, reservaId, IDHabitacion, precio) => {
+  try {
+    if (!IDHabitacion) return;
+    const data = {
+      IDReserva: reservaId,
+      IDHabitacion,
+      Cantidad: 1,
+      precio,
+      Estado: 1
+    };
+    await connection.query('INSERT INTO detallereservahabitacion SET ?', data);
+  } catch (error) {
+    throw error;
+  }
+};
+
 const insertServiceDetails = async (connection, reservaId, serviceRows) => {
   try {
     if (!Array.isArray(serviceRows) || serviceRows.length === 0) return;
@@ -190,8 +215,13 @@ const createReservation = async (data) => {
     const [result] = await connection.query('INSERT INTO reserva SET ?', reservaData);
     const reservaId = result.insertId;
 
-    // Guardar paquete en su tabla de detalle (solo si se seleccionó paquete)
-    await insertPackageDetail(connection, reservaId, data.IDPaquete, totals.paquetePrecio);
+    // Guardar habitación o paquete en su tabla de detalle
+    if (data.IDHabitacion) {
+      await insertHabitacionDetail(connection, reservaId, data.IDHabitacion, totals.habitacionPrecio);
+    } else if (data.IDPaquete) {
+      await insertPackageDetail(connection, reservaId, data.IDPaquete, totals.paquetePrecio);
+    }
+    
     await insertServiceDetails(connection, reservaId, totals.servicios);
 
     await connection.commit();
@@ -232,11 +262,16 @@ const updateReservation = async (id, data) => {
     }
 
     // Limpiar detalles anteriores
+    await connection.query('DELETE FROM detallereservahabitacion WHERE IDReserva = ?', [id]);
     await connection.query('DELETE FROM detallereservapaquetes WHERE IDReserva = ?', [id]);
     await connection.query('DELETE FROM detallereservaservicio WHERE IDReserva = ?', [id]);
 
     // Insertar nuevos detalles
-    await insertPackageDetail(connection, id, data.IDPaquete, totals.paquetePrecio);
+    if (data.IDHabitacion) {
+      await insertHabitacionDetail(connection, id, data.IDHabitacion, totals.habitacionPrecio);
+    } else if (data.IDPaquete) {
+      await insertPackageDetail(connection, id, data.IDPaquete, totals.paquetePrecio);
+    }
     await insertServiceDetails(connection, id, totals.servicios);
 
     await connection.commit();

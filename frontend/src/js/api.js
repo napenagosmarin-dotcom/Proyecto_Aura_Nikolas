@@ -206,17 +206,17 @@ const cabanasAPI = {
 // ===== RESERVAS =====
 const reservasAPI = {
   getAll: async () => {
-    const res = await fetch(`${API_URL}/api/reservas`);
+    const res = await fetch(`${API_URL}/api/reservations`);
     return res.json();
   },
 
   getById: async (id) => {
-    const res = await fetch(`${API_URL}/api/reservas/${id}`);
+    const res = await fetch(`${API_URL}/api/reservations/${id}`);
     return res.json();
   },
 
   create: async (data) => {
-    const res = await fetch(`${API_URL}/api/reservas`, {
+    const res = await fetch(`${API_URL}/api/reservations`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -225,7 +225,7 @@ const reservasAPI = {
   },
 
   update: async (id, data) => {
-    const res = await fetch(`${API_URL}/api/reservas/${id}`, {
+    const res = await fetch(`${API_URL}/api/reservations/${id}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
@@ -234,7 +234,7 @@ const reservasAPI = {
   },
 
   delete: async (id) => {
-    const res = await fetch(`${API_URL}/api/reservas/${id}`, {
+    const res = await fetch(`${API_URL}/api/reservations/${id}`, {
       method: 'DELETE'
     });
     return res.json();

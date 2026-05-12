@@ -712,82 +712,93 @@ body:has(.admin-layout) {
   padding: 2rem;
 }
 
-/* Estilos específicos para ver detalle (Estilo Premium del Sitio) */
-.modal-overlay:has(.modal-box-ver) .modal,
-.modal-overlay:has(.modal-box-ver) .modal-box {
-  background: #fdfcf0 !important; /* Blanco hueso */
-  color: #1a1a1a !important;
+/* Estilos específicos para ver detalle (Estilo Premium Oscuro/Glassmorphism) */
+.modal-box-ver {
+  background: rgba(13, 11, 46, 0.9) !important;
+  backdrop-filter: blur(20px);
+  color: #ffffff !important;
   border-radius: 28px;
-  border: 1px solid rgba(123, 47, 247, 0.15);
-  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.15);
-  max-width: 850px;
+  border: 1px solid rgba(0, 212, 255, 0.2) !important;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6);
+  max-width: 650px !important;
+  width: 90%;
 }
 
-.modal-overlay:has(.modal-box-ver) .modal-header {
-  border-bottom: 1px solid rgba(123, 47, 247, 0.1);
+.modal-box-ver .modal-header {
+  border-bottom: 1px solid rgba(0, 212, 255, 0.1);
   padding: 1.5rem 2.5rem;
+  background: rgba(123, 47, 247, 0.15);
+  border-radius: 28px 28px 0 0;
 }
 
-.modal-overlay:has(.modal-box-ver) .modal-header h3 {
+.modal-box-ver .modal-header h3 {
   font-family: var(--fuente-principal);
-  font-size: 2rem;
-  color: var(--color-primario) !important;
+  font-size: 1.8rem;
+  color: var(--color-acento) !important;
   font-weight: 700;
-  letter-spacing: -0.5px;
+  text-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
 }
 
-.modal-overlay:has(.modal-box-ver) .modal-close {
-  background: rgba(123, 47, 247, 0.08);
+.modal-box-ver .modal-close {
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 14px;
-  width: 45px;
-  height: 45px;
+  width: 40px;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-primario);
-  transition: all 0.3s ease;
+  color: #fff;
+  border: 1px solid rgba(0, 212, 255, 0.2);
 }
 
-.modal-overlay:has(.modal-box-ver) .modal-close:hover {
-  background: var(--color-secundario);
-  color: #fff;
+.modal-box-ver .modal-close:hover {
+  background: var(--color-error);
+  border-color: var(--color-error);
   transform: rotate(90deg);
 }
 
-.modal-overlay:has(.modal-box-ver) .modal-body {
+.modal-box-ver .modal-body, 
+.modal-box-ver .modal-ver-body {
   padding: 2.5rem;
 }
 
-.modal-overlay:has(.modal-box-ver) .ver-cabana-info p {
+.modal-box-ver .ver-cabana-info p {
   font-family: var(--fuente-secundaria);
-  color: #4b5563 !important;
+  color: rgba(255, 255, 255, 0.7) !important;
   font-size: 1.05rem;
   line-height: 1.8;
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-.modal-overlay:has(.modal-box-ver) .ver-cabana-datos {
-  background: #ffffff !important;
-  border: 1px solid rgba(123, 47, 247, 0.12) !important;
-  box-shadow: 0 10px 30px rgba(123, 47, 247, 0.04);
+.modal-box-ver .ver-cabana-datos {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(0, 212, 255, 0.1) !important;
+  box-shadow: none;
   padding: 1.5rem;
   border-radius: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
 }
 
-.modal-overlay:has(.modal-box-ver) .ver-cabana-datos span {
-  background: #f8f7ff;
-  color: var(--color-primario) !important;
-  font-weight: 700;
-  font-size: 0.95rem;
-  padding: 0.75rem 1.25rem;
+.modal-box-ver .ver-cabana-datos span {
+  background: rgba(0, 212, 255, 0.05);
+  color: #ffffff !important;
+  font-weight: 500;
+  font-size: 0.9rem;
+  padding: 0.85rem 1.15rem;
   border-radius: 14px;
-  border: 1px solid rgba(123, 47, 247, 0.08);
+  border: 1px solid rgba(0, 212, 255, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.modal-overlay:has(.modal-box-ver) .ver-cabana-datos i {
-  color: var(--color-secundario) !important;
+.modal-box-ver .ver-cabana-datos i {
+  color: var(--color-acento) !important;
   width: 18px;
   height: 18px;
+  flex-shrink: 0;
 }
 
 .modal-box-ver img {
@@ -807,12 +818,32 @@ body:has(.admin-layout) {
 }
 
 .stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  display: flex !important;
   gap: 1.5rem;
+  overflow-x: auto !important;
+  padding: 0.5rem 0.5rem 1.5rem 0.5rem;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar estilizada y visible */
+.stats-grid::-webkit-scrollbar {
+  height: 10px;
+}
+
+.stats-grid::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+}
+
+.stats-grid::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, var(--color-secundario), var(--color-acento));
+  border-radius: 10px;
 }
 
 .stat-card {
+  flex: 0 0 auto;
+  width: 240px;
   background: rgba(13, 11, 46, 0.45);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(0, 212, 255, 0.1);
@@ -824,6 +855,7 @@ body:has(.admin-layout) {
   position: relative;
   overflow: hidden;
   transition: var(--transicion);
+  cursor: pointer;
 }
 
 .stat-card:hover {
@@ -839,11 +871,14 @@ body:has(.admin-layout) {
   top: 0; left: 0; width: 100%; height: 3px;
 }
 
-.stat-card--cabanas::after    { background: linear-gradient(90deg, #7b2ff7, #00d4ff); }
+.stat-card--dashboard::after   { background: linear-gradient(90deg, #3b82f6, #00d4ff); }
+.stat-card--reservas::after    { background: linear-gradient(90deg, #8b5cf6, #3b82f6); }
+.stat-card--usuarios::after    { background: linear-gradient(90deg, #ec4899, #8b5cf6); }
+.stat-card--cabanas::after       { background: linear-gradient(90deg, #7b2ff7, #00d4ff); }
 .stat-card--habitaciones::after { background: linear-gradient(90deg, #4a1d96, #7b2ff7); }
-.stat-card--clientes::after   { background: linear-gradient(90deg, #00b4d8, #00d4ff); }
-.stat-card--paquetes::after   { background: linear-gradient(90deg, #e040fb, #7b2ff7); }
-.stat-card--servicios::after  { background: linear-gradient(90deg, #10b981, #00d4ff); }
+.stat-card--clientes::after      { background: linear-gradient(90deg, #00b4d8, #00d4ff); }
+.stat-card--paquetes::after      { background: linear-gradient(90deg, #e040fb, #7b2ff7); }
+.stat-card--servicios::after     { background: linear-gradient(90deg, #10b981, #00d4ff); }
 
 .stat-card__icon {
   font-size: 1.8rem;
@@ -928,3 +963,4 @@ body:has(.admin-layout) {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.4; }
 }
+

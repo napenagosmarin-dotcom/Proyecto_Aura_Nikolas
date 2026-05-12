@@ -127,17 +127,29 @@
       <section id="section-dashboard" class="admin-section">
         <div class="dashboard-content">
           <!-- Tarjetas de resumen -->
-          <div class="stats-grid">
-            <div class="stat-card stat-card--cabanas">
-              <div class="stat-card__icon">🏕️</div>
+          <div class="stats-grid" id="statsGrid">
+            <!-- Dashboard -->
+            <div class="stat-card stat-card--dashboard" data-section="dashboard">
+              <div class="stat-card__icon">📊</div>
               <div class="stat-card__info">
-                <span class="stat-card__numero" id="stat-cabanas">—</span>
-                <span class="stat-card__label">Cabañas</span>
+                <span class="stat-card__numero">Home</span>
+                <span class="stat-card__label">Dashboard</span>
               </div>
-              <div class="stat-card__sub" id="stat-cabanas-activas">Cargando...</div>
+              <div class="stat-card__sub">Vista general</div>
             </div>
 
-            <div class="stat-card stat-card--habitaciones">
+            <!-- Reservas -->
+            <div class="stat-card stat-card--reservas" data-section="reservas">
+              <div class="stat-card__icon">📅</div>
+              <div class="stat-card__info">
+                <span class="stat-card__numero" id="stat-reservas">—</span>
+                <span class="stat-card__label">Reservas</span>
+              </div>
+              <div class="stat-card__sub" id="stat-reservas-sub">Cargando...</div>
+            </div>
+
+            <!-- Habitaciones -->
+            <div class="stat-card stat-card--habitaciones" data-section="habitaciones">
               <div class="stat-card__icon">🛏️</div>
               <div class="stat-card__info">
                 <span class="stat-card__numero" id="stat-habitaciones">—</span>
@@ -146,7 +158,18 @@
               <div class="stat-card__sub" id="stat-habitaciones-sub">Cargando...</div>
             </div>
 
-            <div class="stat-card stat-card--clientes">
+            <!-- Usuarios -->
+            <div class="stat-card stat-card--usuarios" data-section="usuarios">
+              <div class="stat-card__icon">🔑</div>
+              <div class="stat-card__info">
+                <span class="stat-card__numero" id="stat-usuarios">—</span>
+                <span class="stat-card__label">Usuarios</span>
+              </div>
+              <div class="stat-card__sub" id="stat-usuarios-sub">Cargando...</div>
+            </div>
+
+            <!-- Clientes -->
+            <div class="stat-card stat-card--clientes" data-section="clientes">
               <div class="stat-card__icon">👥</div>
               <div class="stat-card__info">
                 <span class="stat-card__numero" id="stat-clientes">—</span>
@@ -155,7 +178,18 @@
               <div class="stat-card__sub" id="stat-clientes-activos">Cargando...</div>
             </div>
 
-            <div class="stat-card stat-card--paquetes">
+            <!-- Cabañas -->
+            <div class="stat-card stat-card--cabanas" data-section="cabanas">
+              <div class="stat-card__icon">🏕️</div>
+              <div class="stat-card__info">
+                <span class="stat-card__numero" id="stat-cabanas">—</span>
+                <span class="stat-card__label">Cabañas</span>
+              </div>
+              <div class="stat-card__sub" id="stat-cabanas-activas">Cargando...</div>
+            </div>
+
+            <!-- Paquetes -->
+            <div class="stat-card stat-card--paquetes" data-section="paquetes">
               <div class="stat-card__icon">✈️</div>
               <div class="stat-card__info">
                 <span class="stat-card__numero" id="stat-paquetes">—</span>
@@ -164,7 +198,8 @@
               <div class="stat-card__sub" id="stat-paquetes-sub">Cargando...</div>
             </div>
 
-            <div class="stat-card stat-card--servicios">
+            <!-- Servicios -->
+            <div class="stat-card stat-card--servicios" data-section="servicios">
               <div class="stat-card__icon">⭐</div>
               <div class="stat-card__info">
                 <span class="stat-card__numero" id="stat-servicios">—</span>

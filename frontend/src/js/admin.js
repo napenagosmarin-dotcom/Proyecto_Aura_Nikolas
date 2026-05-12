@@ -29,7 +29,7 @@ if (newItemBtn) {
     });
 }
 
-// Navegación — ahora usa .admin-nav-item
+// Navegación — ahora usa .admin-nav-item y .stat-card (dashboard cards)
 const navItems = document.querySelectorAll('.admin-nav-item');
 const sections = document.querySelectorAll('.admin-section');
 const titles = {
@@ -43,18 +43,49 @@ const titles = {
     servicios:    'Gestión de Servicios'
 };
 
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        navItems.forEach(n => n.classList.remove('active'));
-        sections.forEach(s => s.classList.remove('active'));
-        item.classList.add('active');
-        currentSection = item.dataset.section;
-        document.getElementById(`section-${currentSection}`).classList.add('active');
-        document.getElementById('sectionTitle').textContent = titles[currentSection];
-        updateHeader(currentSection);
-        cargarSeccion(currentSection);
+function switchSection(sectionId) {
+    // Actualizar items de navegación del sidebar
+    navItems.forEach(n => {
+        n.classList.toggle('active', n.dataset.section === sectionId);
     });
+
+    // Actualizar secciones
+    sections.forEach(s => s.classList.remove('active'));
+    
+    currentSection = sectionId;
+    const targetSection = document.getElementById(`section-${currentSection}`);
+    if (targetSection) targetSection.classList.add('active');
+    
+    const titleEl = document.getElementById('sectionTitle');
+    if (titleEl) titleEl.textContent = titles[currentSection];
+    
+    updateHeader(currentSection);
+    cargarSeccion(currentSection);
+
+    // Si navegamos fuera de dashboard, el scroll debería ir arriba
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+navItems.forEach(item => {
+    item.addEventListener('click', () => switchSection(item.dataset.section));
 });
+
+// Hacer que las tarjetas del dashboard funcionen como acceso rápido (Delegación de eventos)
+function initStatCards() {
+    const statsGrid = document.getElementById('statsGrid');
+    if (!statsGrid) return;
+    
+    statsGrid.addEventListener('click', (e) => {
+        const card = e.target.closest('.stat-card');
+        if (card) {
+            const section = card.dataset.section;
+            if (section) switchSection(section);
+        }
+    });
+}
+document.addEventListener('DOMContentLoaded', initStatCards);
+// Si ya cargó el script, intentamos inicializar de una vez
+initStatCards();
 
 function cargarSeccion(section) {
     switch(section) {
@@ -289,6 +320,7 @@ async function cargarClientes() {
     try {
         const response = await fetch('/api/clientes');
         const clientes = await response.json();
+        window.clientesData = clientes; // Guardar globalmente para acceso rápido
 
         list.innerHTML = `
             <div class="admin-table-wrapper">
@@ -325,16 +357,16 @@ async function cargarClientes() {
                                 </td>
                                 <td>
                                     <div style="display:flex; gap:8px;">
-                                        <button onclick="toggleEstadoCliente('${c.NroDocumento}', ${c.Estado})" class="btn-icon-admin ${statusClass}" title="${statusTitle}">
+                                        <button onclick="toggleEstadoCliente('${c.IDCliente}', ${c.Estado})" class="btn-icon-admin ${statusClass}" title="${statusTitle}">
                                             <i data-lucide="${statusIcon}" style="width:16px;"></i>
                                         </button>
-                                        <button onclick="verDetalleCliente('${c.NroDocumento}')" class="btn-icon-admin btn-view" title="Ver Detalle">
+                                        <button onclick="verDetalleCliente('${c.IDCliente}')" class="btn-icon-admin btn-view" title="Ver Detalle">
                                             <i data-lucide="eye" style="width:16px;"></i>
                                         </button>
-                                        <button onclick="editarCliente('${c.NroDocumento}')" class="btn-icon-admin btn-edit" title="Editar">
+                                        <button onclick="editarCliente('${c.IDCliente}')" class="btn-icon-admin btn-edit" title="Editar">
                                             <i data-lucide="edit-2" style="width:16px;"></i>
                                         </button>
-                                        <button onclick="eliminarCliente('${c.NroDocumento}')" class="btn-icon-admin btn-delete" title="Eliminar">
+                                        <button onclick="eliminarCliente('${c.IDCliente}')" class="btn-icon-admin btn-delete" title="Eliminar">
                                             <i data-lucide="trash-2" style="width:16px;"></i>
                                         </button>
                                     </div>
@@ -486,27 +518,98 @@ window.toggleEstadoCliente = async (id, actual) => {
     } catch (e) { alert('Error de conexión'); }
 };
 
-window.verDetalleCliente = async (id) => {
+window.eliminarCliente = async (id) => {
+    if (confirm('¿Está seguro de eliminar este cliente?')) {
+        try {
+            const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+            if (res.ok) cargarClientes();
+            else alert('Error al eliminar cliente');
+        } catch (e) { alert('Error de conexión'); }
+    }
+};
+
+window.verDetalleCliente = (id) => {
     try {
-        const res = await fetch(`/api/clientes/${id}`);
-        const c = await res.json();
+        // En lugar de hacer fetch, buscamos en los datos que YA tenemos cargados en la tabla
+        // Esto garantiza que si se ve en la tabla, se verá en el detalle
+        let c = (window.clientesData || []).find(item => 
+            String(item.NroDocumento) === String(id) || 
+            String(item.IDCliente) === String(id) ||
+            String(item.id) === String(id)
+        );
+
+        if (!c) {
+            alert('No se encontraron datos para este cliente en la memoria local.');
+            return;
+        }
+
+        // Normalización de valores con búsqueda exhaustiva para el email
+        const getVal = (obj, key) => obj[key] !== undefined ? obj[key] : '-';
         
-        document.getElementById('detalleTitulo').textContent = `Detalle: ${c.Nombre} ${c.Apellido || ''}`;
+        // El email es crítico, buscamos en todas las variantes posibles
+        const email = c.Email || c.email || c.Correo || c.correo || c.Mail || c.mail || '-';
+        const nombre = getVal(c, 'Nombre');
+        const apellido = getVal(c, 'Apellido');
+        const idCli = getVal(c, 'IDCliente');
+        const documento = getVal(c, 'NroDocumento') !== '-' ? getVal(c, 'NroDocumento') : id;
+        const telefono = getVal(c, 'Telefono');
+        const direccion = getVal(c, 'Direccion');
+        const idRol = getVal(c, 'IDRol');
+        const estadoVal = c.Estado !== undefined ? c.Estado : 1;
+        const estadoTxt = estadoVal == 1 ? 'Activo' : 'Inactivo';
+        
+        document.getElementById('detalleTitulo').textContent = `Detalle de Vista: ${nombre} ${apellido}`;
+        document.getElementById('detalleContent').style.padding = "0"; 
         document.getElementById('detalleContent').innerHTML = `
-            <div class="ver-cabana-info">
-                <p><strong>Información Personal:</strong></p>
-                <div class="ver-cabana-datos">
-                    <span><i data-lucide="credit-card"></i> Doc: ${c.NroDocumento}</span>
-                    <span><i data-lucide="user"></i> ${c.Nombre} ${c.Apellido || ''}</span>
-                    <span><i data-lucide="mail"></i> ${c.Email}</span>
-                    <span><i data-lucide="phone"></i> ${c.Telefono || '-'}</span>
-                    <span><i data-lucide="map-pin"></i> ${c.Direccion || '-'}</span>
-                    <span><i data-lucide="info"></i> Estado: ${c.Estado === 1 ? 'Activo' : 'Inactivo'}</span>
+            <div style="display: flex; flex-direction: column; gap: 0.8rem; padding: 1.2rem; background: rgba(13, 11, 46, 0.4);">
+                
+                <!-- Correo Principal (Ancho total) -->
+                <div style="width: 100%; padding: 0.8rem 1.2rem; background: rgba(0, 212, 255, 0.05); border-radius: 12px; border: 1px solid rgba(0, 212, 255, 0.1); display: flex; align-items: center; gap: 0.8rem; box-sizing: border-box;">
+                    <i data-lucide="mail" style="color: var(--color-acento); width: 20px;"></i>
+                    <span style="color: rgba(255,255,255,0.5); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Email:</span>
+                    <b style="color: #fff; font-size: 1rem; letter-spacing: 0.3px;">${email}</b>
                 </div>
+
+                <!-- Datos principales en 3 columnas ajustadas -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; width: 100%;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 0.8rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <p style="color: var(--color-acento); font-size: 0.7rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: 700; opacity: 0.8;">Identificación</p>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem; color: #fff; font-size: 0.85rem;">
+                            <span><b style="color: var(--color-acento); opacity: 0.7;">ID:</b> ${idCli}</span>
+                            <span><b style="color: var(--color-acento); opacity: 0.7;">Doc:</b> ${documento}</span>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.02); padding: 0.8rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <p style="color: var(--color-acento); font-size: 0.7rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: 700; opacity: 0.8;">Cliente</p>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem; color: #fff; font-size: 0.85rem;">
+                            <span style="font-weight: 600;">${nombre}</span>
+                            <span style="font-weight: 600;">${apellido}</span>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(255,255,255,0.02); padding: 0.8rem; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+                        <p style="color: var(--color-acento); font-size: 0.7rem; text-transform: uppercase; margin-bottom: 0.6rem; font-weight: 700; opacity: 0.8;">Contacto</p>
+                        <div style="display: flex; flex-direction: column; gap: 0.4rem; color: #fff; font-size: 0.85rem;">
+                            <span><b style="color: var(--color-acento); opacity: 0.7;">Tel:</b> ${telefono}</span>
+                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;"><b style="color: var(--color-acento); opacity: 0.7;">Dir:</b> ${direccion}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Compacto (Ancho total) -->
+                <div style="width: 100%; display: flex; justify-content: space-between; padding: 0.6rem 1.2rem; background: rgba(123, 47, 247, 0.08); border-radius: 10px; border: 1px solid rgba(123, 47, 247, 0.15); box-sizing: border-box;">
+                    <span style="color: #fff; font-size: 0.85rem; font-weight: 500;"><i data-lucide="shield-check" style="width: 14px; vertical-align: middle; margin-right: 4px; color: var(--color-acento);"></i> Estado: <b style="color: var(--color-acento)">${estadoTxt}</b></span>
+                    <span style="color: #fff; font-size: 0.85rem; font-weight: 500;"><i data-lucide="shield" style="width: 14px; vertical-align: middle; margin-right: 4px; color: var(--color-acento);"></i> Rol: <b style="color: var(--color-acento)">${idRol == 2 ? 'Administrador' : 'Cliente'}</b></span>
+                </div>
+
             </div>`;
         if (window.lucide) lucide.createIcons({ parent: document.getElementById('detalleContent') });
         document.getElementById('detalleModalOverlay').classList.add('activo');
-    } catch (e) { alert('Error cargando detalles'); }
+    } catch (e) { 
+        console.error('Error:', e);
+        alert('Error al mostrar los detalles.'); 
+    }
 };
 
 window.eliminarCliente = async (id) => {
@@ -523,23 +626,40 @@ window.eliminarCliente = async (id) => {
 window.mostrarDetallesCabana = async (id) => {
     try {
         const res = await fetch(`/api/cabanas/${id}`);
-        const c = await res.json();
-        const { texto } = etiquetaEstadoCabana(c.Estado);
+        let c = await res.json();
+        
+        if (Array.isArray(c)) c = c[0];
+        if (c.data) c = c.data;
 
-        document.getElementById('detalleTitulo').textContent = c.NombreCabana;
+        const { texto } = etiquetaEstadoCabana(c.Estado || c.estado);
+
+        document.getElementById('detalleTitulo').textContent = `Ficha de Cabaña`;
         document.getElementById('detalleContent').innerHTML = `
-            <img src="${c.ImagenCabana || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000'}" alt="${c.NombreCabana}">
+            <div style="position:relative; margin-bottom:2rem;">
+                <img src="${c.ImagenCabana || c.imagenCabana || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000'}" 
+                     alt="${c.NombreCabana || c.nombreCabana}" 
+                     style="width:100%; height:300px; object-fit:cover; border-radius:20px; box-shadow:0 15px 40px rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.1);">
+                <div style="position:absolute; bottom:-15px; right:20px; background:var(--color-secundario); color:#fff; padding:0.8rem 1.5rem; border-radius:14px; font-weight:700; box-shadow:0 8px 20px rgba(0,0,0,0.4); border:1px solid rgba(0,212,255,0.3);">
+                    ${c.NombreCabana || c.nombreCabana}
+                </div>
+            </div>
             <div class="ver-cabana-info">
-                <p><strong>Descripción:</strong> ${c.Descripcion || 'Sin descripción'}</p>
+                <p style="margin-bottom:1.5rem; color:rgba(255,255,255,0.7); font-style:italic; font-size:1.1rem;">"${c.Descripcion || c.descripcion || 'Sin descripción detallada disponible.'}"</p>
+                <p style="font-weight:700; color:var(--color-acento); margin-bottom:1rem; display:flex; align-items:center; gap:0.5rem; font-size:1rem;">
+                    <i data-lucide="layout-list" style="width:18px;"></i> Especificaciones Técnicas
+                </p>
                 <div class="ver-cabana-datos">
-                    <span><i data-lucide="users"></i> Capacidad: ${c.CapacidadPersonas}</span>
-                    <span><i data-lucide="dollar-sign"></i> Precio: $${Number(c.PrecioNoche).toLocaleString('es-CO')}</span>
-                    <span><i data-lucide="info"></i> Estado: ${texto}</span>
+                    <span><i data-lucide="users"></i> <b style="color:var(--color-acento)">Capacidad:</b> ${c.CapacidadPersonas || c.capacidadPersonas} personas</span>
+                    <span><i data-lucide="dollar-sign"></i> <b style="color:var(--color-acento)">Precio:</b> $${Number(c.PrecioNoche || c.precioNoche).toLocaleString('es-CO')}</span>
+                    <span><i data-lucide="check-circle-2"></i> <b style="color:var(--color-acento)">Estado:</b> ${texto}</span>
                 </div>
             </div>`;
         if (window.lucide) lucide.createIcons({ parent: document.getElementById('detalleContent') });
         document.getElementById('detalleModalOverlay').classList.add('activo');
-    } catch (e) { alert('Error cargando detalles'); }
+    } catch (e) { 
+        console.error('Error:', e);
+        alert('Error cargando detalles'); 
+    }
 };
 
 window.toggleEstadoCabana = async (id, actual) => {
@@ -696,21 +816,34 @@ let chartReservas = null;
 
 async function cargarDashboard() {
     // Resetear stats con animación
-    ['stat-cabanas', 'stat-habitaciones', 'stat-clientes', 'stat-paquetes', 'stat-servicios']
+    ['stat-cabanas', 'stat-habitaciones', 'stat-clientes', 'stat-paquetes', 'stat-servicios', 'stat-reservas', 'stat-usuarios']
         .forEach(id => {
             const el = document.getElementById(id);
             if (el) { el.textContent = '...'; el.classList.add('loading-num'); }
         });
 
     try {
-        const [cabanas, habitaciones, clientes, paquetes, servicios, reservas] = await Promise.all([
+        const [cabanas, habitaciones, clientes, paquetes, servicios, reservas, usuarios] = await Promise.all([
             cabanasAPI.getAll(),
             habitacionesAPI.getAll(),
             clientesAPI.getAll(),
             paquetesAPI.getAll(),
             serviciosAPI.getAll(),
-            reservasAPI.getAll()
+            reservasAPI.getAll(),
+            fetch('/api/usuarios').then(res => res.json())
         ]);
+
+        // Reservas
+        const elRes = document.getElementById('stat-reservas');
+        if (elRes) animarNumero(elRes, reservas.length);
+        const subRes = document.getElementById('stat-reservas-sub');
+        if (subRes) subRes.textContent = `${reservas.length} totales`;
+
+        // Usuarios
+        const elUsr = document.getElementById('stat-usuarios');
+        if (elUsr) animarNumero(elUsr, usuarios.length);
+        const subUsr = document.getElementById('stat-usuarios-sub');
+        if (subUsr) subUsr.textContent = `${usuarios.length} registrados`;
 
         // Cabañas
         const elCabanas = document.getElementById('stat-cabanas');
