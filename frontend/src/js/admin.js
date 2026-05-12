@@ -127,11 +127,15 @@ async function cargarReservas() {
             fetch('/api/reservations'),
             fetch('/api/estadosreserva')
         ]);
+        
+        if (!resReservas.ok) throw new Error(`Error reservaciones: ${resReservas.status}`);
+        if (!resEstados.ok) throw new Error(`Error estados: ${resEstados.status}`);
+
         const reservas = await resReservas.json();
         const estados  = await resEstados.json();
 
-        if (!reservas.length) {
-            list.innerHTML = '<p style="color:rgba(255,255,255,0.4); padding:2rem;">No hay reservas registradas.</p>';
+        if (!Array.isArray(reservas) || reservas.length === 0) {
+            list.innerHTML = '<p style="color:rgba(255,255,255,0.4); padding:2rem;">No hay reservas registradas en el sistema.</p>';
             return;
         }
 
@@ -189,10 +193,13 @@ async function cambiarEstado(idReserva, idEstado) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ IdEstadoReserva: idEstado })
         });
-        if (response.ok) cargarReservas();
-        else alert('Error al cambiar estado');
+        if (response.ok) {
+            cargarReservas();
+            mostrarNotificacion('Estado de la reserva actualizado.', 'success');
+        }
+        else mostrarNotificacion('Error al cambiar el estado de la reserva.', 'error');
     } catch (error) {
-        alert('Error de conexión');
+        mostrarNotificacion('Error de conexión al servidor.', 'error');
     }
 }
 
@@ -493,6 +500,64 @@ function siguienteEstado(actual) {
 // —— Handlers de Modales —————————————————————————————————————————————————
 window.cerrarModal = () => document.getElementById('modalOverlay').classList.remove('activo');
 window.cerrarDetalle = () => document.getElementById('detalleModalOverlay').classList.remove('activo');
+window.cerrarConfirmacion = () => document.getElementById('confirmModalOverlay').classList.remove('activo');
+
+window.mostrarConfirmacion = (titulo, mensaje, onConfirm) => {
+    document.getElementById('confirmTitle').textContent = titulo;
+    document.getElementById('confirmMessage').textContent = mensaje;
+    const okBtn = document.getElementById('confirmOkBtn');
+    
+    // Clonar el botón para eliminar listeners anteriores
+    const newOkBtn = okBtn.cloneNode(true);
+    okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+    
+    newOkBtn.addEventListener('click', () => {
+        onConfirm();
+        cerrarConfirmacion();
+    });
+    
+    document.getElementById('confirmModalOverlay').classList.add('activo');
+    if (window.lucide) lucide.createIcons({ parent: document.getElementById('confirmModalOverlay') });
+};
+
+window.mostrarNotificacion = (mensaje, tipo = 'info', titulo = '') => {
+    const container = document.getElementById('notificationContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast toast--${tipo}`;
+    
+    let icon = 'info';
+    if (tipo === 'success') icon = 'check-circle';
+    if (tipo === 'error') icon = 'alert-circle';
+    if (tipo === 'warning') icon = 'alert-triangle';
+    
+    if (!titulo) {
+        if (tipo === 'success') titulo = '¡Éxito!';
+        if (tipo === 'error') titulo = 'Error';
+        if (tipo === 'warning') titulo = 'Atención';
+        if (tipo === 'info') titulo = 'Información';
+    }
+
+    toast.innerHTML = `
+        <div class="toast__icon">
+            <i data-lucide="${icon}"></i>
+        </div>
+        <div class="toast__content">
+            <span class="toast__title">${titulo}</span>
+            <span class="toast__message">${mensaje}</span>
+        </div>
+    `;
+
+    container.appendChild(toast);
+    if (window.lucide) lucide.createIcons({ parent: toast });
+
+    // Auto eliminar después de 5 segundos
+    setTimeout(() => {
+        toast.classList.add('removing');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+};
 
 // —— Acciones de Clientes ————————————————————————————————————————————————
 window.editarCliente = async (id) => {
@@ -502,7 +567,7 @@ window.editarCliente = async (id) => {
         document.getElementById('modalTitle').textContent = 'Editar Cliente';
         document.getElementById('modalContent').innerHTML = renderForm('clientes', data);
         document.getElementById('modalOverlay').classList.add('activo');
-    } catch (e) { alert('Error al cargar datos del cliente'); }
+    } catch (e) { mostrarNotificacion('Error al cargar datos del cliente.', 'error'); }
 };
 
 window.toggleEstadoCliente = async (id, actual) => {
@@ -513,19 +578,32 @@ window.toggleEstadoCliente = async (id, actual) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ Estado: nuevo })
         });
-        if (res.ok) cargarClientes();
-        else alert('Error al cambiar estado');
-    } catch (e) { alert('Error de conexión'); }
+        if (res.ok) {
+            cargarClientes();
+            mostrarNotificacion(`Cliente ${nuevo === 1 ? 'activado' : 'desactivado'} con éxito.`, 'success');
+        }
+        else mostrarNotificacion('Error al cambiar el estado del cliente.', 'error');
+    } catch (e) { mostrarNotificacion('Error de conexión al servidor.', 'error'); }
 };
 
 window.eliminarCliente = async (id) => {
-    if (confirm('¿Está seguro de eliminar este cliente?')) {
-        try {
-            const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
-            if (res.ok) cargarClientes();
-            else alert('Error al eliminar cliente');
-        } catch (e) { alert('Error de conexión'); }
-    }
+    mostrarConfirmacion(
+        '¿Eliminar Cliente?',
+        '¿Está seguro de que desea eliminar este cliente? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    cargarClientes();
+                    mostrarNotificacion('Cliente eliminado correctamente.', 'success');
+                } else {
+                    mostrarNotificacion('No se pudo eliminar el cliente.', 'error');
+                }
+            } catch (e) {
+                mostrarNotificacion('Error de conexión al servidor.', 'error');
+            }
+        }
+    );
 };
 
 window.verDetalleCliente = (id) => {
@@ -539,7 +617,7 @@ window.verDetalleCliente = (id) => {
         );
 
         if (!c) {
-            alert('No se encontraron datos para este cliente en la memoria local.');
+            mostrarNotificacion('No se encontraron datos para este cliente en la memoria local.', 'warning');
             return;
         }
 
@@ -608,19 +686,11 @@ window.verDetalleCliente = (id) => {
         document.getElementById('detalleModalOverlay').classList.add('activo');
     } catch (e) { 
         console.error('Error:', e);
-        alert('Error al mostrar los detalles.'); 
+        mostrarNotificacion('Error al mostrar los detalles del cliente.', 'error'); 
     }
 };
 
-window.eliminarCliente = async (id) => {
-    if(confirm('¿Está seguro de eliminar este cliente?')) {
-        try {
-            const res = await fetch(`/api/clientes/${id}`, { method: 'DELETE' });
-            if (res.ok) cargarClientes();
-            else alert('Error al eliminar cliente');
-        } catch (e) { alert('Error de conexión'); }
-    }
-};
+
 
 // —— Acciones de Cabañas —————————————————————————————————————————————————
 window.mostrarDetallesCabana = async (id) => {
@@ -658,7 +728,7 @@ window.mostrarDetallesCabana = async (id) => {
         document.getElementById('detalleModalOverlay').classList.add('activo');
     } catch (e) { 
         console.error('Error:', e);
-        alert('Error cargando detalles'); 
+        mostrarNotificacion('Error al cargar detalles de la cabaña.', 'error'); 
     }
 };
 
@@ -670,8 +740,13 @@ window.toggleEstadoCabana = async (id, actual) => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ Estado: nuevo })
         });
-        if (res.ok) cargarCabanas();
-    } catch (e) { alert('Error al cambiar estado'); }
+        if (res.ok) {
+            cargarCabanas();
+            mostrarNotificacion('Estado de la cabaña actualizado correctamente.', 'success');
+        } else {
+            mostrarNotificacion('Error al cambiar el estado de la cabaña.', 'error');
+        }
+    } catch (e) { mostrarNotificacion('Error de conexión al servidor.', 'error'); }
 };
 
 window.editarCabana = async (id) => {
@@ -681,17 +756,27 @@ window.editarCabana = async (id) => {
         document.getElementById('modalTitle').textContent = '✏️ Editar Cabaña';
         document.getElementById('modalContent').innerHTML = renderForm('cabanas', data);
         document.getElementById('modalOverlay').classList.add('activo');
-    } catch (e) { alert('Error al cargar datos de la cabaña'); }
+    } catch (e) { mostrarNotificacion('Error al cargar datos de la cabaña.', 'error'); }
 };
 
 window.eliminarCabana = async (id) => {
-    if(confirm('¿Está seguro de eliminar esta cabaña?')) {
-        try {
-            const res = await fetch(`/api/cabanas/${id}`, { method: 'DELETE' });
-            if (res.ok) cargarCabanas();
-            else alert('Error al eliminar cabaña');
-        } catch (e) { alert('Error de conexión'); }
-    }
+    mostrarConfirmacion(
+        '¿Eliminar Cabaña?',
+        '¿Está seguro de que desea eliminar esta cabaña? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                const res = await fetch(`/api/cabanas/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    cargarCabanas();
+                    mostrarNotificacion('Cabaña eliminada correctamente.', 'success');
+                } else {
+                    mostrarNotificacion('No se pudo eliminar la cabaña.', 'error');
+                }
+            } catch (e) {
+                mostrarNotificacion('Error de conexión al servidor.', 'error');
+            }
+        }
+    );
 };
 
 
@@ -813,6 +898,8 @@ async function cargarServicios() {
 let chartCabanas = null;
 let chartClientes = null;
 let chartReservas = null;
+let chartPaquetes = null;
+let chartServicios = null;
 
 async function cargarDashboard() {
     // Resetear stats con animación
@@ -883,6 +970,8 @@ async function cargarDashboard() {
         renderGraficaCabanas(cabanas);
         renderGraficaClientes(clientes);
         renderGraficaReservas(reservas);
+        renderGraficaPaquetes(paquetes);
+        renderGraficaServicios(servicios);
 
     } catch (error) {
         console.error('Error cargando dashboard:', error);
@@ -986,14 +1075,24 @@ function renderGraficaReservas(reservas) {
         estados[est] = (estados[est] || 0) + 1;
     });
 
+    const labels = Object.keys(estados);
+    const colorMap = {
+        'Cancelada': '#ef4444',
+        'Completada': '#10b981',
+        'Confirmada': '#00d4ff',
+        'Pendiente': '#f59e0b',
+        'Procesando': '#7b2ff7'
+    };
+    const backgroundColors = labels.map(label => colorMap[label] || '#7b2ff7');
+
     chartReservas = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: Object.keys(estados),
+            labels: labels,
             datasets: [{
                 label: 'Reservas',
                 data: Object.values(estados),
-                backgroundColor: '#7b2ff7',
+                backgroundColor: backgroundColors,
                 borderRadius: 8
             }]
         },
@@ -1010,9 +1109,70 @@ function renderGraficaReservas(reservas) {
     });
 }
 
+function renderGraficaPaquetes(paquetes) {
+    const ctx = document.getElementById('grafica-paquetes');
+    if (!ctx) return;
+    if (chartPaquetes) chartPaquetes.destroy();
+
+    const activos = paquetes.filter(p => p.Estado === 1).length;
+    const inactivos = paquetes.length - activos;
+
+    chartPaquetes = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Activos', 'Inactivos'],
+            datasets: [{
+                label: 'Paquetes',
+                data: [activos, inactivos],
+                backgroundColor: ['#e040fb', 'rgba(255,255,255,0.1)'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.4)' } },
+                x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)' } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+function renderGraficaServicios(servicios) {
+    const ctx = document.getElementById('grafica-servicios');
+    if (!ctx) return;
+    if (chartServicios) chartServicios.destroy();
+
+    const activos = servicios.filter(s => s.Estado === 1).length;
+    const inactivos = servicios.length - activos;
+
+    chartServicios = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: ['Activos', 'Inactivos'],
+            datasets: [{
+                label: 'Servicios',
+                data: [activos, inactivos],
+                backgroundColor: ['#10b981', 'rgba(255,255,255,0.1)'],
+                borderRadius: 8
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: 'rgba(255,255,255,0.4)' } },
+                x: { grid: { display: false }, ticks: { color: 'rgba(255,255,255,0.4)' } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
 // ===== INICIALIZAR =====
-updateHeader('dashboard');
-cargarDashboard();
+switchSection('reservas');
 // -- Acciones de Habitaciones ---------------------------------------------
 window.editarHabitacion = async (id) => {
     try {
@@ -1021,16 +1181,26 @@ window.editarHabitacion = async (id) => {
         document.getElementById('modalTitle').textContent = 'Editar Habitación';
         document.getElementById('modalContent').innerHTML = renderForm('habitaciones', data);
         document.getElementById('modalOverlay').classList.add('activo');
-    } catch (e) { alert('Error al cargar datos de la habitación'); }
+    } catch (e) { mostrarNotificacion('Error al cargar datos de la habitación.', 'error'); }
 };
 window.eliminarHabitacion = async (id) => {
-    if(confirm('¿Está seguro de eliminar esta habitación?')) {
-        try {
-            const res = await fetch('/api/habitaciones/' + id, { method: 'DELETE' });
-            if (res.ok) cargarHabitaciones();
-            else alert('Error al eliminar habitación');
-        } catch (e) { alert('Error de conexión'); }
-    }
+    mostrarConfirmacion(
+        '¿Eliminar Habitación?',
+        '¿Está seguro de que desea eliminar esta habitación? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                const res = await fetch(`/api/habitaciones/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    cargarHabitaciones();
+                    mostrarNotificacion('Habitación eliminada correctamente.', 'success');
+                } else {
+                    mostrarNotificacion('Error al eliminar habitación.', 'error');
+                }
+            } catch (e) {
+                mostrarNotificacion('Error de conexión al servidor.', 'error');
+            }
+        }
+    );
 };
 
 // -- Acciones de Usuarios -------------------------------------------------
@@ -1041,16 +1211,26 @@ window.editarUsuario = async (id) => {
         document.getElementById('modalTitle').textContent = 'Editar Usuario';
         document.getElementById('modalContent').innerHTML = renderForm('usuarios', data);
         document.getElementById('modalOverlay').classList.add('activo');
-    } catch (e) { alert('Error al cargar datos del usuario'); }
+    } catch (e) { mostrarNotificacion('Error al cargar datos del usuario.', 'error'); }
 };
 window.eliminarUsuario = async (id) => {
-    if(confirm('¿Está seguro de eliminar este usuario?')) {
-        try {
-            const res = await fetch('/api/usuarios/' + id, { method: 'DELETE' });
-            if (res.ok) cargarUsuarios();
-            else alert('Error al eliminar usuario');
-        } catch (e) { alert('Error de conexión'); }
-    }
+    mostrarConfirmacion(
+        '¿Eliminar Usuario?',
+        '¿Está seguro de que desea eliminar este usuario? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                const res = await fetch('/api/usuarios/' + id, { method: 'DELETE' });
+                if (res.ok) {
+                    cargarUsuarios();
+                    mostrarNotificacion('Usuario eliminado con éxito.', 'success');
+                } else {
+                    mostrarNotificacion('Error al eliminar el usuario.', 'error');
+                }
+            } catch (e) {
+                mostrarNotificacion('Error de conexión al servidor.', 'error');
+            }
+        }
+    );
 };
 
 // -- Acciones de Paquetes -------------------------------------------------
@@ -1069,16 +1249,26 @@ window.editarPaquete = async (id) => {
         document.getElementById('modalTitle').textContent = 'Editar Paquete';
         document.getElementById('modalContent').innerHTML = renderForm('paquetes', data, extra);
         document.getElementById('modalOverlay').classList.add('activo');
-    } catch (e) { alert('Error al cargar datos del paquete'); }
+    } catch (e) { mostrarNotificacion('Error al cargar datos del paquete.', 'error'); }
 };
 window.eliminarPaquete = async (id) => {
-    if(confirm('¿Está seguro de eliminar este paquete?')) {
-        try {
-            const res = await fetch('/api/paquetes/' + id, { method: 'DELETE' });
-            if (res.ok) cargarPaquetes();
-            else alert('Error al eliminar paquete');
-        } catch (e) { alert('Error de conexión'); }
-    }
+    mostrarConfirmacion(
+        '¿Eliminar Paquete?',
+        '¿Está seguro de que desea eliminar este paquete? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                const res = await fetch('/api/paquetes/' + id, { method: 'DELETE' });
+                if (res.ok) {
+                    cargarPaquetes();
+                    mostrarNotificacion('Paquete eliminado con éxito.', 'success');
+                } else {
+                    mostrarNotificacion('Error al eliminar el paquete.', 'error');
+                }
+            } catch (e) {
+                mostrarNotificacion('Error de conexión al servidor.', 'error');
+            }
+        }
+    );
 };
 
 // -- Acciones de Servicios ------------------------------------------------
@@ -1089,16 +1279,26 @@ window.editarServicio = async (id) => {
         document.getElementById('modalTitle').textContent = 'Editar Servicio';
         document.getElementById('modalContent').innerHTML = renderForm('servicios', data);
         document.getElementById('modalOverlay').classList.add('activo');
-    } catch (e) { alert('Error al cargar datos del servicio'); }
+    } catch (e) { mostrarNotificacion('Error al cargar datos del servicio.', 'error'); }
 };
 window.eliminarServicio = async (id) => {
-    if(confirm('¿Está seguro de eliminar este servicio?')) {
-        try {
-            const res = await fetch('/api/servicios/' + id, { method: 'DELETE' });
-            if (res.ok) cargarServicios();
-            else alert('Error al eliminar servicio');
-        } catch (e) { alert('Error de conexión'); }
-    }
+    mostrarConfirmacion(
+        '¿Eliminar Servicio?',
+        '¿Está seguro de que desea eliminar este servicio? Esta acción no se puede deshacer.',
+        async () => {
+            try {
+                const res = await fetch('/api/servicios/' + id, { method: 'DELETE' });
+                if (res.ok) {
+                    cargarServicios();
+                    mostrarNotificacion('Servicio eliminado con éxito.', 'success');
+                } else {
+                    mostrarNotificacion('Error al eliminar el servicio.', 'error');
+                }
+            } catch (e) {
+                mostrarNotificacion('Error de conexión al servidor.', 'error');
+            }
+        }
+    );
 };
 
 // —— Funciones de Creación —————————————————————————————————————————————
@@ -1321,12 +1521,13 @@ function renderForm(section, data = null, extra = {}) {
             if (res.ok) {
                 cerrarModal();
                 cargarSeccion(section);
+                mostrarNotificacion(`Registro ${id ? 'actualizado' : 'creado'} correctamente.`, 'success');
             } else {
                 const err = await res.json();
-                alert('Error: ' + (err.message || 'No se pudo guardar'));
+                mostrarNotificacion(err.message || 'No se pudo guardar el registro.', 'error', 'Error al guardar');
             }
         } catch (e) {
-            alert('Error de conexión con el servidor');
+            mostrarNotificacion('Error de conexión con el servidor.', 'error');
         }
     };
 

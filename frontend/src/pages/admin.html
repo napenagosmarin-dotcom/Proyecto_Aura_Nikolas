@@ -219,6 +219,14 @@
               <h3>👥 Clientes</h3>
               <canvas id="grafica-clientes"></canvas>
             </div>
+            <div class="chart-container">
+              <h3>✈️ Paquetes</h3>
+              <canvas id="grafica-paquetes"></canvas>
+            </div>
+            <div class="chart-container">
+              <h3>⭐ Servicios</h3>
+              <canvas id="grafica-servicios"></canvas>
+            </div>
             <div class="chart-container chart-wide">
               <h3>📋 Reservas por Estado</h3>
               <canvas id="grafica-reservas"></canvas>
@@ -287,5 +295,23 @@
   <script src="../js/api.js"></script>
   <script src="../js/admin.js"></script>
   <script>lucide.createIcons();</script>
+  <!-- MODAL DE CONFIRMACIÓN -->
+  <div id="confirmModalOverlay" class="modal-overlay">
+    <div class="modal-box modal-confirm">
+      <div class="modal-confirm__icon">
+        <i data-lucide="alert-triangle"></i>
+      </div>
+      <div class="modal-confirm__content">
+        <h3 id="confirmTitle">¿Estás seguro?</h3>
+        <p id="confirmMessage">Esta acción no se puede deshacer.</p>
+      </div>
+      <div class="modal-confirm__actions">
+        <button id="confirmCancelBtn" class="btn-confirm-cancel" onclick="cerrarConfirmacion()">Cancelar</button>
+        <button id="confirmOkBtn" class="btn-confirm-ok">Eliminar</button>
+      </div>
+    </div>
+  </div>
+  <!-- CONTENEDOR DE NOTIFICACIONES -->
+  <div id="notificationContainer" class="notification-container"></div>
 </body>
 </html>

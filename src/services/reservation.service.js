@@ -7,10 +7,10 @@ const getAllReservations = async () => {
   try {
     const sql = `SELECT r.*, u.NombreUsuario, u.NumeroDocumento AS NroDocumentoCliente, 
                         e.NombreEstadoReserva, m.NomMetodoPago,
-                        p.IDPaquete, p.NombrePaquete, p.Precio AS PrecioPaquete,
-                        COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
-                        COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
-                        COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
+                         p.IDPaquete, p.nombre AS NombrePaquete, p.precio AS PrecioPaquete,
+                         COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
+                         COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
+                         COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
                  FROM reserva r
                  JOIN usuarios u ON r.UsuarioIdusuario = u.IDUsuario
                  LEFT JOIN estadosreserva e ON r.IdEstadoReserva = e.IdEstadoReserva
@@ -32,10 +32,10 @@ const getReservationById = async (id) => {
   try {
     const sql = `SELECT r.*, u.NombreUsuario, u.NumeroDocumento AS NroDocumentoCliente, 
                         e.NombreEstadoReserva, m.NomMetodoPago,
-                        p.IDPaquete, p.NombrePaquete, p.Precio AS PrecioPaquete,
-                        COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
-                        COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
-                        COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
+                         p.IDPaquete, p.nombre AS NombrePaquete, p.precio AS PrecioPaquete,
+                         COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
+                         COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
+                         COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
                  FROM reserva r
                  JOIN usuarios u ON r.UsuarioIdusuario = u.IDUsuario
                  LEFT JOIN estadosreserva e ON r.IdEstadoReserva = e.IdEstadoReserva
@@ -71,10 +71,10 @@ const getReservationsByUser = async (userId) => {
  
     const sql = `SELECT r.*, u.NombreUsuario, u.NumeroDocumento AS NroDocumentoCliente, 
                         e.NombreEstadoReserva, m.NomMetodoPago,
-                        p.IDPaquete, p.NombrePaquete, p.Precio AS PrecioPaquete,
-                        COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
-                        COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
-                        COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
+                         p.IDPaquete, p.nombre AS NombrePaquete, p.precio AS PrecioPaquete,
+                         COALESCE(h_direct.IDHabitacion, h_paq.IDHabitacion) AS IDHabitacion,
+                         COALESCE(h_direct.NombreHabitacion, h_paq.NombreHabitacion) AS NombreHabitacion,
+                         COALESCE(h_direct.precio, h_paq.precio) AS CostoHabitacion
                  FROM reserva r
                  JOIN usuarios u ON r.UsuarioIdusuario = u.IDUsuario
                  LEFT JOIN estadosreserva e ON r.IdEstadoReserva = e.IdEstadoReserva
@@ -117,7 +117,7 @@ const getHabitacionPrice = async (IDHabitacion) => {
 const getServicesPrices = async (servicioIds) => {
   try {
     if (!Array.isArray(servicioIds) || servicioIds.length === 0) return [];
-    const [results] = await db.query('SELECT IDServicio, Costo FROM servicios WHERE IDServicio IN (?)', [servicioIds]);
+    const [results] = await db.query('SELECT IDServicio, precio AS Costo FROM servicios WHERE IDServicio IN (?)', [servicioIds]);
     return results.map(r => ({ IDServicio: r.IDServicio, Costo: Number(r.Costo) || 0 }));
   } catch (error) {
     throw error;
@@ -240,19 +240,29 @@ const updateReservation = async (id, data) => {
   try {
     await connection.beginTransaction();
 
+    // 1. Si SOLO viene IdEstadoReserva, hacemos un update rápido y salimos
+    const keys = Object.keys(data);
+    if (keys.length === 1 && keys[0] === 'IdEstadoReserva') {
+      await connection.query('UPDATE reserva SET IdEstadoReserva = ? WHERE IdReserva = ?', [data.IdEstadoReserva, id]);
+      await connection.commit();
+      return { id, ...data };
+    }
+
+    // 2. Si es un update completo (desde formulario)
     const servicioIds = Array.isArray(data.serviciosAdicionales) ? data.serviciosAdicionales : [];
     const totals = await calculateTotals(data.IDPaquete, data.IDHabitacion, servicioIds);
 
-    // reservaData NO incluye IDPaquete ni IDHabitacion
-    const reservaData = {
-      FechaInicio: data.FechaInicio || null,
-      FechaFinalizacion: data.FechaFinalizacion || null,
-      SubTotal: totals.subtotal,
-      Descuento: 0,
-      IVA: totals.iva,
-      MontoTotal: totals.total,
-      MetodoPago: data.MetodoPago || null
-    };
+    const reservaData = {};
+    if (data.FechaInicio) reservaData.FechaInicio = data.FechaInicio;
+    if (data.FechaFinalizacion) reservaData.FechaFinalizacion = data.FechaFinalizacion;
+    if (data.MetodoPago) reservaData.MetodoPago = data.MetodoPago;
+    if (data.IdEstadoReserva) reservaData.IdEstadoReserva = data.IdEstadoReserva;
+    
+    // Totales siempre se actualizan si es un update completo
+    reservaData.SubTotal = totals.subtotal;
+    reservaData.Descuento = 0;
+    reservaData.IVA = totals.iva;
+    reservaData.MontoTotal = totals.total;
 
     const [result] = await connection.query('UPDATE reserva SET ? WHERE IdReserva = ?', [reservaData, id]);
 
@@ -261,18 +271,19 @@ const updateReservation = async (id, data) => {
       return null;
     }
 
-    // Limpiar detalles anteriores
-    await connection.query('DELETE FROM detallereservahabitacion WHERE IDReserva = ?', [id]);
-    await connection.query('DELETE FROM detallereservapaquetes WHERE IDReserva = ?', [id]);
-    await connection.query('DELETE FROM detallereservaservicio WHERE IDReserva = ?', [id]);
+    // Si se enviaron detalles (Habitación/Paquete/Servicios), los refrescamos
+    if (data.IDHabitacion || data.IDPaquete || servicioIds.length > 0) {
+      await connection.query('DELETE FROM detallereservahabitacion WHERE IDReserva = ?', [id]);
+      await connection.query('DELETE FROM detallereservapaquetes WHERE IDReserva = ?', [id]);
+      await connection.query('DELETE FROM detallereservaservicio WHERE IDReserva = ?', [id]);
 
-    // Insertar nuevos detalles
-    if (data.IDHabitacion) {
-      await insertHabitacionDetail(connection, id, data.IDHabitacion, totals.habitacionPrecio);
-    } else if (data.IDPaquete) {
-      await insertPackageDetail(connection, id, data.IDPaquete, totals.paquetePrecio);
+      if (data.IDHabitacion) {
+        await insertHabitacionDetail(connection, id, data.IDHabitacion, totals.habitacionPrecio);
+      } else if (data.IDPaquete) {
+        await insertPackageDetail(connection, id, data.IDPaquete, totals.paquetePrecio);
+      }
+      await insertServiceDetails(connection, id, totals.servicios);
     }
-    await insertServiceDetails(connection, id, totals.servicios);
 
     await connection.commit();
     return { id, ...reservaData };
